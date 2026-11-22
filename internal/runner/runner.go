@@ -289,3 +289,6 @@ func (b *tailBuf) String() string {
 	}
 	return strings.Join(l, "\n")
 }
+
+// HideWindow makes a child process run without a console window (Windows).
+func HideWindow(c *exec.Cmd) { hideWindow(c) }
