@@ -71,6 +71,52 @@ go build -ldflags "-H=windowsgui" -o vidpreset.exe ./cmd/vidpreset
 Кнопка «Сохранить» в редакторе сама выполняет `install`. Если переместить `vidpreset.exe`,
 выполните `vidpreset install` ещё раз (путь к exe записан в `menu.txt` / реестре).
 
+## Конструктор пресетов
+
+Пресет можно собрать формой, без знания синтаксиса ffmpeg: кодек (H.264 / H.265 / AV1 / без перекодирования),
+энкодер (CPU / NVIDIA NVENC / AMD AMF / Intel QSV, только доступные на этой машине), режим кодирования
+(по качеству / по битрейту / по размеру файла), скорость, размер кадра (не менять / сохранить пропорции /
+растянуть / вписать), fps, звук (копировать / AAC / Opus / убрать), громкость, контейнер. Внизу живое превью
+команды с кнопкой «Копировать». «Импорт из команды ffmpeg…» разбирает готовую команду и показывает, что
+распознано, а что останется сырым.
+
+- **Доступность энкодеров** проверяется пробным кодированием (`-f lavfi color`, 0,1 с) для каждого аппаратного
+  энкодера, а не только по списку `ffmpeg -encoders`. Проверка идёт в фоне при старте редактора, результат
+  кэшируется на неделю (`%LOCALAPPDATA%\vidpreset\encoders.json`); «Настройки → Параметры → Перепроверить».
+- **По размеру файла**: битрейт считается при запуске: `размер_МБ * 8192 * 0.95 / длительность - аудио`
+  (длительность и битрейт звука из ffprobe). CPU H.264/H.265 кодируют в два прохода (логи во временной папке,
+  удаляются), остальные в один; точное попадание в размер для аппаратных энкодеров не гарантируется.
+- **Старые пресеты** (`vf` / `af` / `args` без таблиц `[preset.video]`) работают как раньше и открываются в
+  режиме сырых аргументов; кнопка «Открыть в конструкторе» делает импорт их команды.
+
+Формат в `presets.toml` (у структурного пресета `vf` / `af` / `args` — дополнительные фильтры и аргументы):
+
+```toml
+[[preset]]
+id = "stretch-fhd"
+name = "4:3 → 16:9 (FHD)"
+suffix = "fhd"
+ext = "mp4"                # same = расширение источника
+[preset.video]
+codec = "h264"             # copy | h264 | h265 | av1
+encoder = "cpu"            # cpu | nvenc | amf | qsv
+rate_mode = "quality"      # quality | bitrate | size
+quality = 18               # единая шкала (меньше = лучше); video_bitrate (Мбит/с); target_size_mb
+speed = "medium"           # fastest | fast | medium | slow | slowest (или значение энкодера, например p5)
+scale_mode = "stretch"     # none | keep | stretch | fit
+width = 1920
+height = 1080
+[preset.audio]
+mode = "copy"              # copy | aac | opus | remove
+bitrate = "192k"
+volume_db = -6
+```
+
+Флаги по семействам энкодеров: CPU `-crf N -preset …` (AV1: libsvtav1, `-preset 0..13`); NVENC
+`-rc vbr -cq N -b:v 0 -preset p1..p7`; QSV `-global_quality N -preset …`; AMF
+`-rc cqp -qp_i N -qp_p N [-qp_b N] -quality speed|balanced|quality`. По битрейту: CPU `-b:v NM`; NVENC
+`-rc vbr -b:v NM -maxrate 1.5·NM`; AMF `-rc vbr_peak -b:v NM -maxrate 1.5·NM`; QSV `-b:v NM -maxrate 1.5·NM`.
+
 ## Заметки
 
 - `ext = "same"` — расширение источника.
