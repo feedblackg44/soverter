@@ -2,7 +2,7 @@
 // Reads %APPDATA%\vidpreset\menu.txt (UTF-8):
 //   exe=<full path to vidpreset.exe>
 //   mode=submenu|single
-//   title=<name of the root menu item>   (optional, default "vidpreset")
+//   title=<name of the root menu item>   (optional; default follows the Windows display language)
 //   <id>\t<name>      (one line per enabled preset, in menu order)
 // and builds a submenu with that title. Invoking an entry runs: exe run <id> <files...>
 #define UNICODE
@@ -30,6 +30,11 @@ struct MenuData {
     std::wstring title;
     std::vector<Entry> items;
 };
+
+// Default root title in the style of "Edit with Notepad++", chosen by the Windows display language.
+static const wchar_t *DefaultTitle() {
+    return (GetUserDefaultUILanguage() & 0x3FF) == LANG_RUSSIAN ? L"Обработать с помощью vidpreset" : L"Convert with vidpreset";
+}
 
 static std::wstring Widen(const std::string &s) {
     if (s.empty()) return L"";
@@ -136,7 +141,7 @@ public:
 
     // IExplorerCommand
     STDMETHODIMP GetTitle(IShellItemArray *, LPWSTR *name) override {
-        return SHStrDupW(kind_ == ROOT ? (menu_.title.empty() ? L"vidpreset" : menu_.title.c_str()) : entry_.name.c_str(), name);
+        return SHStrDupW(kind_ == ROOT ? (menu_.title.empty() ? DefaultTitle() : menu_.title.c_str()) : entry_.name.c_str(), name);
     }
     STDMETHODIMP GetIcon(IShellItemArray *, LPWSTR *icon) override {
         *icon = nullptr;

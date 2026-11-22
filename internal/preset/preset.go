@@ -260,13 +260,19 @@ func JoinArgs(args []string) string {
 	return strings.Join(parts, " ")
 }
 
-// DefaultMenuTitle is the Explorer menu item name unless the user sets another one.
-const DefaultMenuTitle = "vidpreset"
+// DefaultMenuTitle is the Explorer menu item name unless the user sets another one. It follows the Windows display
+// language (not the application language), in the style of "Edit with Notepad++".
+func DefaultMenuTitle() string {
+	if i18n.SystemLang() == i18n.RU {
+		return "Обработать с помощью vidpreset"
+	}
+	return "Convert with vidpreset"
+}
 
 // MenuName returns the configured menu item name or the default.
 func (s Settings) MenuName() string {
 	if t := strings.TrimSpace(s.MenuTitle); t != "" {
 		return t
 	}
-	return DefaultMenuTitle
+	return DefaultMenuTitle()
 }

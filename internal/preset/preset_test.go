@@ -186,3 +186,16 @@ func TestStructuredTOMLHasNoZeroNoise(t *testing.T) {
 		t.Error("fps = 0 written")
 	}
 }
+
+func TestMenuNameDefaultsAndOverride(t *testing.T) {
+	d := DefaultMenuTitle()
+	if d != "Convert with vidpreset" && d != "Обработать с помощью vidpreset" {
+		t.Fatalf("unexpected default %q", d)
+	}
+	if got := (Settings{}).MenuName(); got != d {
+		t.Fatalf("empty setting must give the default, got %q", got)
+	}
+	if got := (Settings{MenuTitle: "  Edit with X "}).MenuName(); got != "Edit with X" {
+		t.Fatalf("override %q", got)
+	}
+}

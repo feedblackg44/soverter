@@ -113,7 +113,7 @@ func TestMenuTitle(t *testing.T) {
 		}
 		return "?"
 	}
-	if got := find(""); got != "vidpreset" {
+	if got := find(""); got != preset.DefaultMenuTitle() {
 		t.Fatalf("default title %q", got)
 	}
 	if got := find("My videos"); got != "My videos" {

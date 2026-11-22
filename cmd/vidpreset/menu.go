@@ -29,7 +29,7 @@ func installMenu(c *preset.Config) error {
 		}
 		return shellext.Uninstall()
 	}
-	if err := shellext.Install(exe, c.Presets, c.Settings.MenuMode, c.Settings.MenuName()); err != nil {
+	if err := shellext.Install(exe, c.Presets, c.Settings.MenuMode, c.Settings.MenuTitle); err != nil {
 		return err
 	}
 	return shellint.Uninstall(reg)

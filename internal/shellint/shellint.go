@@ -49,7 +49,7 @@ type Entry struct{ Key, Name, Value string }
 func planRoot(root, exe string, presets []preset.Preset, mode, title string) []Entry {
 	q := `"` + exe + `"`
 	if title == "" {
-		title = preset.DefaultMenuTitle
+		title = preset.DefaultMenuTitle()
 	}
 	es := []Entry{{root, "MUIVerb", title}}
 	if mode == "single" {

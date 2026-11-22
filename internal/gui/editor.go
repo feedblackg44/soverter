@@ -824,7 +824,7 @@ func (e *Editor) settingsDialog() {
 					}
 					return d
 				}),
-				Labeled(th, i18n.T("Название пункта в меню Explorer"), func(gtx C) D { return st.title.Layout(gtx, th, preset.DefaultMenuTitle) }),
+				Labeled(th, i18n.T("Название пункта в меню Explorer"), func(gtx C) D { return st.title.Layout(gtx, th, preset.DefaultMenuTitle()) }),
 				Labeled(th, i18n.T("Вид меню"), func(gtx C) D {
 					v, d := st.sMode.Layout(gtx, th, []Opt{{Val: "submenu", Label: i18n.T("Подменю")}, {Val: "single", Label: i18n.T("Один пункт с окном выбора")}}, st.mode)
 					if v != "" {
