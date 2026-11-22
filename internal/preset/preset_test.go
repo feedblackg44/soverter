@@ -76,3 +76,96 @@ func TestSplitJoinArgs(t *testing.T) {
 		t.Fatal("unclosed quote must fail")
 	}
 }
+
+const structuredTOML = `
+[[preset]]
+id = "stretch-fhd"
+name = "4:3 -> 16:9 (FHD)"
+suffix = "fhd"
+ext = "mp4"
+[preset.video]
+codec = "h264"
+encoder = "nvenc"
+rate_mode = "quality"
+quality = 18
+speed = "medium"
+scale_mode = "stretch"
+width = 1920
+height = 1080
+[preset.audio]
+mode = "aac"
+bitrate = "192k"
+volume_db = -6
+
+[[preset]]
+id = "legacy"
+name = "legacy"
+suffix = "l"
+ext = "mp4"
+vf = "scale=1280:720"
+args = ["-c:v", "libx264"]
+`
+
+func TestStructuredAndLegacyCoexist(t *testing.T) {
+	c, err := Parse([]byte(structuredTOML))
+	if err != nil {
+		t.Fatal(err)
+	}
+	s, l := c.Presets[0], c.Presets[1]
+	if !s.Structured() || l.Structured() {
+		t.Fatal("structured/legacy detection")
+	}
+	if s.Video.Encoder != "nvenc" || s.Video.Width != 1920 || s.Audio.VolumeDB != -6 || s.Audio.Bitrate != "192k" {
+		t.Fatalf("%+v %+v", s.Video, s.Audio)
+	}
+	// round trip keeps both kinds intact, and legacy presets get no new tables
+	data, err := Encode(c)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Count(string(data), "[preset.video]") != 1 {
+		t.Fatalf("legacy preset must not gain a [preset.video] table:\n%s", data)
+	}
+	c2, err := Parse(data)
+	if err != nil || !reflect.DeepEqual(c.Presets, c2.Presets) {
+		t.Fatalf("round trip: %v", err)
+	}
+}
+
+func TestOldConfigWithoutNewFields(t *testing.T) {
+	old := "[settings]\nmenu_mode = \"submenu\"\n[[preset]]\nid=\"a\"\nname=\"A\"\nsuffix=\"a\"\next=\"mp4\"\nvf=\"scale=1:1\"\n"
+	c, err := Parse([]byte(old))
+	if err != nil || c.Presets[0].Structured() {
+		t.Fatalf("old config must load as a legacy preset: %v", err)
+	}
+	if c.Settings.Integration != "modern" {
+		t.Fatal("missing integration defaults to modern")
+	}
+}
+
+func TestStructuredValidation(t *testing.T) {
+	mk := func(v Video, a Audio) Preset {
+		return Preset{ID: "x", Name: "x", Suffix: "x", Ext: "mp4", Video: &v, Audio: &a}
+	}
+	if err := mk(Video{Codec: "h264"}, Audio{Mode: "copy"}).Validate(); err != nil {
+		t.Fatal(err) // structured presets need no vf/af/args
+	}
+	bad := []Preset{
+		mk(Video{Codec: "vp9"}, Audio{Mode: "copy"}),
+		mk(Video{Codec: "h264", Encoder: "tpu"}, Audio{Mode: "copy"}),
+		mk(Video{Codec: "h264", RateMode: "magic"}, Audio{Mode: "copy"}),
+		mk(Video{Codec: "h264", ScaleMode: "zoom"}, Audio{Mode: "copy"}),
+		mk(Video{Codec: "h264"}, Audio{Mode: "flac"}),
+		mk(Video{Codec: "h264", Quality: 99}, Audio{Mode: "copy"}),
+		mk(Video{Codec: "h264", FPS: -1}, Audio{Mode: "copy"}),
+	}
+	for i, p := range bad {
+		if p.Validate() == nil {
+			t.Errorf("case %d must fail", i)
+		}
+	}
+	// empty tables mean defaults
+	if err := (Preset{ID: "x", Name: "x", Suffix: "x", Ext: "mp4", Video: &Video{}}).Validate(); err != nil {
+		t.Fatal(err)
+	}
+}

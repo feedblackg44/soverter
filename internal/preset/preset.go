@@ -22,6 +22,10 @@ type Preset struct {
 	Args   []string `toml:"args,omitempty"`
 	// Disabled presets stay in the file and editor but are hidden from the context menu.
 	Disabled bool `toml:"disabled,omitempty"`
+
+	// Structured (form-built) presets; see structured.go. Both nil = legacy raw preset.
+	Video *Video `toml:"video,omitempty"`
+	Audio *Audio `toml:"audio,omitempty"`
 }
 
 // Enabled returns only the presets shown in the context menu, in order.
@@ -64,6 +68,9 @@ func (p Preset) Validate() error {
 	}
 	if strings.TrimSpace(p.Ext) == "" {
 		return fmt.Errorf("preset %s: пустое ext", p.ID)
+	}
+	if p.Structured() {
+		return p.validateStructured()
 	}
 	if p.VF == "" && p.AF == "" && len(p.Args) == 0 {
 		return fmt.Errorf("preset %s: нужно хотя бы одно из vf/af/args", p.ID)
@@ -178,16 +185,19 @@ func Save(path string, c *Config) error {
 }
 
 func Defaults() *Config {
-	x264 := []string{"-c:v", "libx264", "-crf", "18", "-preset", "medium", "-c:a", "copy"}
+	v := func(codec string, q int, speed, scale string, w, h int, fps float64) *Video {
+		return &Video{Codec: codec, Encoder: EncCPU, RateMode: RateQuality, Quality: q, Speed: speed, ScaleMode: scale, Width: w, Height: h, FPS: fps}
+	}
+	copyAudio := &Audio{Mode: AudioCopy}
 	return &Config{
 		Settings: Settings{MenuMode: "submenu", Integration: "modern"},
 		Presets: []Preset{
-			{ID: "stretch-fhd", Name: "4:3 → 16:9 (FHD)", Suffix: "fhd", Ext: "mp4", VF: "scale=1920:1080,setsar=1", Args: x264},
-			{ID: "stretch-qhd", Name: "4:3 → 16:9 (QHD)", Suffix: "qhd", Ext: "mp4", VF: "scale=2560:1440,setsar=1", Args: x264},
-			{ID: "volume-down", Name: "Громкость −6 дБ", Suffix: "vol", Ext: "same", AF: "volume=-6dB", Args: []string{"-c:v", "copy", "-c:a", "aac", "-b:a", "192k"}},
-			{ID: "fps-30", Name: "30 fps", Suffix: "30fps", Ext: "mp4", VF: "fps=30", Args: []string{"-c:v", "libx264", "-crf", "18", "-c:a", "copy"}},
-			{ID: "scale-720p", Name: "Разрешение 720p", Suffix: "720p", Ext: "mp4", VF: "scale=-2:720", Args: []string{"-c:v", "libx264", "-crf", "20", "-c:a", "copy"}},
-			{ID: "h265", Name: "Перекодировать в H.265", Suffix: "h265", Ext: "mp4", Args: []string{"-c:v", "libx265", "-crf", "24", "-preset", "medium", "-tag:v", "hvc1", "-c:a", "copy"}},
+			{ID: "stretch-fhd", Name: "4:3 → 16:9 (FHD)", Suffix: "fhd", Ext: "mp4", Video: v(CodecH264, 18, "medium", ScaleStretch, 1920, 1080, 0), Audio: copyAudio},
+			{ID: "stretch-qhd", Name: "4:3 → 16:9 (QHD)", Suffix: "qhd", Ext: "mp4", Video: v(CodecH264, 18, "medium", ScaleStretch, 2560, 1440, 0), Audio: copyAudio},
+			{ID: "volume-down", Name: "Громкость −6 дБ", Suffix: "vol", Ext: "same", Video: &Video{Codec: CodecCopy}, Audio: &Audio{Mode: AudioAAC, Bitrate: "192k", VolumeDB: -6}},
+			{ID: "fps-30", Name: "30 fps", Suffix: "30fps", Ext: "mp4", Video: v(CodecH264, 18, "medium", ScaleNone, 0, 0, 30), Audio: copyAudio},
+			{ID: "scale-720p", Name: "Разрешение 720p", Suffix: "720p", Ext: "mp4", Video: v(CodecH264, 20, "medium", ScaleKeep, 0, 720, 0), Audio: copyAudio},
+			{ID: "h265", Name: "Перекодировать в H.265", Suffix: "h265", Ext: "mp4", Video: v(CodecH265, 24, "medium", ScaleNone, 0, 0, 0), Audio: copyAudio},
 		},
 	}
 }

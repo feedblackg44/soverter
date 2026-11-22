@@ -14,20 +14,18 @@ import (
 	"sync"
 	"time"
 
+	"vidpreset/internal/cmdbuild"
 	"vidpreset/internal/preset"
 )
 
-// BuildArgs returns ffmpeg arguments (without the executable).
+// BuildArgs returns ffmpeg arguments for display and legacy callers (nil if the preset cannot be built).
+// Size-mode presets show a placeholder bitrate. Run uses cmdbuild.Args directly.
 func BuildArgs(p preset.Preset, in, out string) []string {
-	a := []string{"-hide_banner", "-n", "-i", in}
-	if p.VF != "" {
-		a = append(a, "-vf", p.VF)
+	a, err := cmdbuild.Args(p, in, out, cmdbuild.Opts{SrcExt: filepath.Ext(in), Preview: true})
+	if err != nil {
+		return nil
 	}
-	if p.AF != "" {
-		a = append(a, "-af", p.AF)
-	}
-	a = append(a, p.Args...)
-	return append(a, out)
+	return a
 }
 
 // OutputPath picks <dir>/<name>.<suffix>.<ext>, adding -1, -2 ... on collision.
@@ -198,7 +196,8 @@ func RequiredEncoders(args []string) []string {
 
 // CheckEncoders returns a friendly error if a required encoder is missing.
 func (t Tools) CheckEncoders(p preset.Preset) error {
-	for _, e := range RequiredEncoders(p.Args) {
+	needed := append(RequiredEncoders(p.Args), cmdbuild.Encoders(p)...)
+	for _, e := range needed {
 		if !t.HasEncoder(e) {
 			return fmt.Errorf("в вашей сборке ffmpeg нет энкодера %q (нужен пресету «%s»).\nУстановите полную сборку: winget install Gyan.FFmpeg", e, p.Name)
 		}
@@ -224,7 +223,11 @@ func (t Tools) Run(ctx context.Context, p preset.Preset, in string, onProgress f
 		return "", err
 	}
 	out := OutputPath(in, p, nil)
-	args := append([]string{"-nostats", "-progress", "pipe:1"}, BuildArgs(p, in, out)...)
+	built, err := cmdbuild.Args(p, in, out, cmdbuild.Opts{SrcExt: filepath.Ext(in)})
+	if err != nil {
+		return "", err
+	}
+	args := append([]string{"-nostats", "-progress", "pipe:1"}, built...)
 	cmd := exec.CommandContext(ctx, t.FFmpeg, args...)
 	hideWindow(cmd)
 	stdout, err := cmd.StdoutPipe()
