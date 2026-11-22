@@ -131,10 +131,6 @@ func (p *ProgressView) Layout(gtx layout.Context, th *theme.Theme) layout.Dimens
 	if p.cancel.Clicked(gtx) {
 		p.q.CancelCurrent()
 	}
-	g := gtx
-	if idle {
-		g = gtx.Disabled()
-	}
 	return layout.UniformInset(16).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
@@ -148,7 +144,10 @@ func (p *ProgressView) Layout(gtx layout.Context, th *theme.Theme) layout.Dimens
 				})
 			}),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return layout.Inset{Top: 8}.Layout(g, func(gtx layout.Context) layout.Dimensions {
+				if idle {
+					gtx = gtx.Disabled()
+				}
+				return layout.Inset{Top: 8}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					return layout.Flex{Spacing: layout.SpaceStart}.Layout(gtx,
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 							return p.cancel.Layout(gtx, th, i18n.T("Отменить текущий"), Secondary)
