@@ -24,12 +24,12 @@ func installMenu(c *preset.Config) error {
 	exe, _ = filepath.Abs(exe)
 	reg := shellint.WinRegistry{}
 	if c.Settings.Integration == "classic" {
-		if err := shellint.Install(reg, exe, c.Presets, c.Settings.MenuMode); err != nil {
+		if err := shellint.Install(reg, exe, c.Presets, c.Settings.MenuMode, c.Settings.MenuName()); err != nil {
 			return err
 		}
 		return shellext.Uninstall()
 	}
-	if err := shellext.Install(exe, c.Presets, c.Settings.MenuMode); err != nil {
+	if err := shellext.Install(exe, c.Presets, c.Settings.MenuMode, c.Settings.MenuName()); err != nil {
 		return err
 	}
 	return shellint.Uninstall(reg)

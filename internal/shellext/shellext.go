@@ -59,14 +59,18 @@ func Version() string {
 	return hex.EncodeToString(h[:8])
 }
 
-// MenuFile renders menu.txt: exe, mode and one "id<TAB>name" line per enabled preset.
-func MenuFile(exe string, presets []preset.Preset, mode string) []byte {
+// MenuFile renders menu.txt: exe, mode, the menu title and one "id<TAB>name" line per enabled preset.
+func MenuFile(exe string, presets []preset.Preset, mode, title string) []byte {
 	if mode != "single" {
 		mode = "submenu"
 	}
 	var b strings.Builder
 	b.WriteString("exe=" + exe + "\n")
 	b.WriteString("mode=" + mode + "\n")
+	title = strings.NewReplacer("\r", " ", "\n", " ").Replace(strings.TrimSpace(title))
+	if title != "" {
+		b.WriteString("title=" + title + "\n") // the DLL falls back to "vidpreset" without it
+	}
 	for _, p := range preset.Enabled(presets) {
 		name := strings.NewReplacer("\t", " ", "\r", " ", "\n", " ").Replace(p.Name)
 		b.WriteString(p.ID + "\t" + name + "\n")

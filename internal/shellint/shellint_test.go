@@ -24,7 +24,7 @@ var ps = []preset.Preset{
 
 func TestInstallSubmenu(t *testing.T) {
 	m := &mock{vals: map[string]string{}}
-	if err := Install(m, `C:\Tools\vid preset.exe`, ps, "submenu"); err != nil {
+	if err := Install(m, `C:\Tools\vid preset.exe`, ps, "submenu", ""); err != nil {
 		t.Fatal(err)
 	}
 	root := RootFor("mp4")
@@ -58,7 +58,7 @@ func TestInstallSubmenu(t *testing.T) {
 
 func TestInstallSingle(t *testing.T) {
 	m := &mock{vals: map[string]string{}}
-	_ = Install(m, `C:\v.exe`, ps, "single")
+	_ = Install(m, `C:\v.exe`, ps, "single", "")
 	root := RootFor("mkv")
 	if got := m.vals[root+`\command|`]; got != `"C:\v.exe" pick "%1"` {
 		t.Fatal(got)
@@ -92,7 +92,7 @@ func TestUninstall(t *testing.T) {
 func TestDisabledSkipped(t *testing.T) {
 	m := &mock{vals: map[string]string{}}
 	list := []preset.Preset{{ID: "off", Name: "Off", Disabled: true}, {ID: "on", Name: "On"}}
-	_ = Install(m, `C:\v.exe`, list, "submenu")
+	_ = Install(m, `C:\v.exe`, list, "submenu", "")
 	if _, ok := m.vals[RootFor("mp4")+`\shell\001-on|MUIVerb`]; !ok {
 		t.Fatal("enabled preset must be 001")
 	}
@@ -100,5 +100,23 @@ func TestDisabledSkipped(t *testing.T) {
 		if strings.Contains(k, "off") {
 			t.Fatalf("disabled preset registered: %s", k)
 		}
+	}
+}
+
+func TestMenuTitle(t *testing.T) {
+	ps := []preset.Preset{{ID: "a", Name: "A", Suffix: "a", Ext: "mp4", VF: "x"}}
+	find := func(title string) string {
+		for _, e := range Plan(`C:\v.exe`, ps, "submenu", title) {
+			if e.Name == "MUIVerb" && e.Key == RootFor("mp4") {
+				return e.Value
+			}
+		}
+		return "?"
+	}
+	if got := find(""); got != "vidpreset" {
+		t.Fatalf("default title %q", got)
+	}
+	if got := find("My videos"); got != "My videos" {
+		t.Fatalf("custom title %q", got)
 	}
 }

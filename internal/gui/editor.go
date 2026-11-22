@@ -778,6 +778,7 @@ type settingsState struct {
 	integration, mode string
 	autoClose         Switch
 	ffmpeg            *Field
+	title             *Field
 	sInt, sMode       Seg
 	sLang, sScale     Seg
 	bRecheck          Btn
@@ -795,6 +796,8 @@ func (e *Editor) settingsDialog() {
 	st.autoClose.Value = e.cfg.Settings.AutoClose
 	st.ffmpeg = NewField()
 	st.ffmpeg.Set(e.cfg.Settings.FFmpegPath)
+	st.title = NewField()
+	st.title.Set(e.cfg.Settings.MenuTitle)
 	e.dlg = &Dialog{
 		Title: i18n.T("Параметры"), Width: 560, Close: e.closeDlg,
 		Body: func(gtx C, th *Th) D {
@@ -821,6 +824,7 @@ func (e *Editor) settingsDialog() {
 					}
 					return d
 				}),
+				Labeled(th, i18n.T("Название пункта в меню Explorer"), func(gtx C) D { return st.title.Layout(gtx, th, preset.DefaultMenuTitle) }),
 				Labeled(th, i18n.T("Вид меню"), func(gtx C) D {
 					v, d := st.sMode.Layout(gtx, th, []Opt{{Val: "submenu", Label: i18n.T("Подменю")}, {Val: "single", Label: i18n.T("Один пункт с окном выбора")}}, st.mode)
 					if v != "" {
@@ -966,11 +970,13 @@ func (e *Editor) applySettings(st *settingsState) {
 	if curMode != "single" {
 		curMode = "submenu"
 	}
-	menuChanged := curInt != st.integration || curMode != st.mode
+	title := strings.TrimSpace(st.title.Text())
+	menuChanged := curInt != st.integration || curMode != st.mode || title != strings.TrimSpace(cur.MenuTitle)
 	path := strings.TrimSpace(st.ffmpeg.Text())
 	err := e.persistUI(func(s *preset.Settings) {
 		s.Integration, s.MenuMode = st.integration, st.mode
 		s.AutoClose = st.autoClose.Value
+		s.MenuTitle = title
 		s.FFmpegPath = path
 	})
 	e.closeDlg()

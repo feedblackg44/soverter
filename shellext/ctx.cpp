@@ -2,8 +2,9 @@
 // Reads %APPDATA%\vidpreset\menu.txt (UTF-8):
 //   exe=<full path to vidpreset.exe>
 //   mode=submenu|single
+//   title=<name of the root menu item>   (optional, default "vidpreset")
 //   <id>\t<name>      (one line per enabled preset, in menu order)
-// and builds a "Видео пресеты" submenu. Invoking an entry runs: exe run <id> <files...>
+// and builds a submenu with that title. Invoking an entry runs: exe run <id> <files...>
 #define UNICODE
 #define _UNICODE
 #include <windows.h>
@@ -26,6 +27,7 @@ struct Entry {
 struct MenuData {
     std::wstring exe;
     bool single = false;
+    std::wstring title;
     std::vector<Entry> items;
 };
 
@@ -64,6 +66,8 @@ static bool LoadMenu(MenuData &m) {
             m.exe = Widen(line.substr(4));
         } else if (line.rfind("mode=", 0) == 0) {
             m.single = line.substr(5) == "single";
+        } else if (line.rfind("title=", 0) == 0) {
+            m.title = Widen(line.substr(6));
         } else {
             size_t tab = line.find('\t');
             if (tab == std::string::npos) continue;
@@ -132,7 +136,7 @@ public:
 
     // IExplorerCommand
     STDMETHODIMP GetTitle(IShellItemArray *, LPWSTR *name) override {
-        return SHStrDupW(kind_ == ROOT ? L"Видео пресеты" : entry_.name.c_str(), name);
+        return SHStrDupW(kind_ == ROOT ? (menu_.title.empty() ? L"vidpreset" : menu_.title.c_str()) : entry_.name.c_str(), name);
     }
     STDMETHODIMP GetIcon(IShellItemArray *, LPWSTR *icon) override {
         *icon = nullptr;

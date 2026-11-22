@@ -26,7 +26,7 @@ func probeStream(t *testing.T, path string) (codec, size string) {
 	return f[0], f[1] + "x" + f[2]
 }
 
-// Acceptance: «4:3 -> 16:9 FHD» built from the form gives name.stretch-1080p.mp4, 1920x1080, source untouched.
+// Acceptance: «4:3 -> 16:9 FHD» built from the form gives name.stretch-fhd.mp4, 1920x1080, source untouched.
 func TestStretchFHDFromForm(t *testing.T) {
 	tl := setup(t)
 	needEncoder(t, "libx264")
@@ -44,7 +44,7 @@ func TestStretchFHDFromForm(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if filepath.Base(out) != "кино 4x3.stretch-1080p.mp4" {
+	if filepath.Base(out) != "кино 4x3.stretch-fhd.mp4" {
 		t.Fatalf("name: %s", out)
 	}
 	codec, size := probeStream(t, out)

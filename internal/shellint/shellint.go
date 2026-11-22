@@ -9,7 +9,6 @@ package shellint
 import (
 	"fmt"
 	"strings"
-	"vidpreset/internal/i18n"
 
 	"vidpreset/internal/preset"
 )
@@ -47,9 +46,12 @@ type Registry interface {
 // Entry is one registry value write.
 type Entry struct{ Key, Name, Value string }
 
-func planRoot(root, exe string, presets []preset.Preset, mode string) []Entry {
+func planRoot(root, exe string, presets []preset.Preset, mode, title string) []Entry {
 	q := `"` + exe + `"`
-	es := []Entry{{root, "MUIVerb", i18n.T("Видео пресеты")}}
+	if title == "" {
+		title = preset.DefaultMenuTitle
+	}
+	es := []Entry{{root, "MUIVerb", title}}
 	if mode == "single" {
 		return append(es, Entry{root + `\command`, "", q + ` pick "%1"`})
 	}
@@ -67,20 +69,20 @@ func planRoot(root, exe string, presets []preset.Preset, mode string) []Entry {
 
 // Plan returns the registry writes for the given presets.
 // mode is "submenu" (default) or "single".
-func Plan(exe string, presets []preset.Preset, mode string) []Entry {
+func Plan(exe string, presets []preset.Preset, mode, title string) []Entry {
 	var es []Entry
 	for _, e := range Extensions {
-		es = append(es, planRoot(RootFor(e), exe, presets, mode)...)
+		es = append(es, planRoot(RootFor(e), exe, presets, mode, title)...)
 	}
 	return es
 }
 
 // Install recreates the menu from scratch (idempotent).
-func Install(r Registry, exe string, presets []preset.Preset, mode string) error {
+func Install(r Registry, exe string, presets []preset.Preset, mode, title string) error {
 	if err := Uninstall(r); err != nil {
 		return err
 	}
-	for _, e := range Plan(exe, presets, mode) {
+	for _, e := range Plan(exe, presets, mode, title) {
 		if err := r.SetString(e.Key, e.Name, e.Value); err != nil {
 			return fmt.Errorf("%s: %w", e.Key, err)
 		}

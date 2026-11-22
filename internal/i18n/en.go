@@ -155,7 +155,8 @@ func init() {
 		// ---- settings / menu dialogs ----
 		"Язык":                "Language",
 		"Настройки сохранены": "Settings saved",
-		"Масштаб интерфейса":  "Interface scale",
+		"Название пункта в меню Explorer":                       "Explorer menu item name",
+		"Масштаб интерфейса":                                    "Interface scale",
 		"Ctrl + / Ctrl − / Ctrl 0 в любом окне меняют масштаб.": "Ctrl + / Ctrl − / Ctrl 0 change the scale in any window.",
 		"Интеграция с Explorer":                                 "Explorer integration",
 		"Меню Windows 11":                                       "Windows 11 menu",

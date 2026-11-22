@@ -95,7 +95,7 @@ go build -ldflags "-H=windowsgui" -o vidpreset.exe ./cmd/vidpreset
 [[preset]]
 id = "stretch-fhd"
 name = "4:3 → 16:9 (FHD)"
-suffix = "stretch-1080p"
+suffix = "stretch-fhd"
 ext = "mp4"                # same = расширение источника
 [preset.video]
 codec = "h264"             # copy | h264 | h265 | av1
@@ -123,6 +123,12 @@ volume_db = -6
 и применяются сразу, настройки пишутся в `[settings]` (`language`, `ui_scale`) без «Сохранить». Масштаб также меняют
 `Ctrl+=`, `Ctrl+-`, `Ctrl+0` в любом окне, это удобно на QHD/4K, если нельзя поднять масштаб Windows.
 Шрифт Roboto вшит в exe, тема (тёмная/светлая) берётся из настроек Windows.
+
+## Название пункта меню
+
+По умолчанию пункт в Explorer называется `vidpreset`. Поменять можно в «Параметры → Название пункта в меню Explorer»
+(`menu_title` в `[settings]`); после «Готово» меню перерегистрируется. Для нового меню Windows 11 название читает
+библиотека из `menu.txt` (строка `title=`).
 
 ## Заметки
 

@@ -47,6 +47,7 @@ type Settings struct {
 	FFmpegPath  string `toml:"ffmpeg_path,omitempty"`
 	Language    string `toml:"language,omitempty"`          // "en" (default) | "ru"
 	UIScale     int    `toml:"ui_scale,omitempty,omitzero"` // interface scale in percent (0 = 100)
+	MenuTitle   string `toml:"menu_title,omitempty"`        // name of the Explorer menu item (default: the application name)
 }
 
 type Config struct {
@@ -195,8 +196,8 @@ func Defaults() *Config {
 	return &Config{
 		Settings: Settings{MenuMode: "submenu", Integration: "modern"},
 		Presets: []Preset{
-			{ID: "stretch-fhd", Name: "4:3 → 16:9 (FHD)", Suffix: "stretch-1080p", Ext: "mp4", Video: v(CodecH264, 18, "medium", ScaleStretch, 1920, 1080, 0), Audio: copyAudio},
-			{ID: "stretch-qhd", Name: "4:3 → 16:9 (QHD)", Suffix: "stretch-1440p", Ext: "mp4", Video: v(CodecH264, 18, "medium", ScaleStretch, 2560, 1440, 0), Audio: copyAudio},
+			{ID: "stretch-fhd", Name: "4:3 → 16:9 (FHD)", Suffix: "stretch-fhd", Ext: "mp4", Video: v(CodecH264, 18, "medium", ScaleStretch, 1920, 1080, 0), Audio: copyAudio},
+			{ID: "stretch-qhd", Name: "4:3 → 16:9 (QHD)", Suffix: "stretch-qhd", Ext: "mp4", Video: v(CodecH264, 18, "medium", ScaleStretch, 2560, 1440, 0), Audio: copyAudio},
 			{ID: "volume-down", Name: i18n.T("Громкость −6 дБ"), Suffix: "volume-6db", Ext: "same", Video: &Video{Codec: CodecCopy}, Audio: &Audio{Mode: AudioAAC, Bitrate: "192k", VolumeDB: -6}},
 			{ID: "fps-30", Name: "30 fps", Suffix: "30fps", Ext: "mp4", Video: v(CodecH264, 18, "medium", ScaleNone, 0, 0, 30), Audio: copyAudio},
 			{ID: "scale-720p", Name: i18n.T("Разрешение 720p"), Suffix: "720p", Ext: "mp4", Video: v(CodecH264, 20, "medium", ScaleKeep, 0, 720, 0), Audio: copyAudio},
@@ -257,4 +258,15 @@ func JoinArgs(args []string) string {
 		}
 	}
 	return strings.Join(parts, " ")
+}
+
+// DefaultMenuTitle is the Explorer menu item name unless the user sets another one.
+const DefaultMenuTitle = "vidpreset"
+
+// MenuName returns the configured menu item name or the default.
+func (s Settings) MenuName() string {
+	if t := strings.TrimSpace(s.MenuTitle); t != "" {
+		return t
+	}
+	return DefaultMenuTitle
 }
