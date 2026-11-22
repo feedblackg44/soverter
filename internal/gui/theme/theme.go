@@ -2,6 +2,9 @@
 package theme
 
 import (
+	"eliasnaur.com/font/roboto/robotobold"
+	"eliasnaur.com/font/roboto/robotomedium"
+	"eliasnaur.com/font/roboto/robotoregular"
 	"image"
 	"image/color"
 	"os"
@@ -43,7 +46,7 @@ func DarkPalette() Palette {
 	return Palette{
 		Bg: rgb(0x14151A), Surface: rgb(0x1C1E26), Raised: rgb(0x242733), Sidebar: rgb(0x101116),
 		Border: rgba(0xFFFFFF, 0x12), BorderStrong: rgba(0xFFFFFF, 0x26),
-		Text: rgb(0xE6E8F0), TextDim: rgb(0xA0A5B8), TextMuted: rgb(0x6B7085),
+		Text: rgb(0xE6E8F0), TextDim: rgb(0xB6BBCE), TextMuted: rgb(0x80859A),
 		Accent: rgb(0x6E7BFF), AccentHover: rgb(0x8590FF), OnAccent: rgb(0x0B0D1F), AccentWash: rgba(0x6E7BFF, 0x26),
 		Danger: rgb(0xFF6B6B), Success: rgb(0x4ADE9A), Warning: rgb(0xF5B84B),
 	}
@@ -86,13 +89,15 @@ func loadFont(file string) []font.FontFace {
 func New(p Palette) *Theme {
 	t := &Theme{P: p}
 	var coll []font.FontFace
-	for _, name := range []string{"segoeui.ttf", "seguisb.ttf", "segoeuib.ttf", "segoeuil.ttf"} {
-		f := loadFont(name)
-		if t.Face == "" && len(f) > 0 {
-			t.Face = f[0].Font.Typeface
+	for _, ttf := range [][]byte{robotoregular.TTF, robotomedium.TTF, robotobold.TTF} {
+		if f, err := opentype.ParseCollection(ttf); err == nil {
+			if t.Face == "" {
+				t.Face = f[0].Font.Typeface
+			}
+			coll = append(coll, f...)
 		}
-		coll = append(coll, f...)
 	}
+	t.Mono = "Go Mono"
 	if f := loadFont("consola.ttf"); len(f) > 0 {
 		t.Mono = f[0].Font.Typeface
 		coll = append(coll, f...)

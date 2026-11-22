@@ -8,10 +8,10 @@ import "errors"
 type WinRegistry struct{}
 
 func (WinRegistry) SetString(key, name, value string) error {
-	return errors.New("только Windows")
+	return errors.New(i18n.T("только Windows"))
 }
-func (WinRegistry) DeleteTree(key string) error { return errors.New("только Windows") }
+func (WinRegistry) DeleteTree(key string) error { return errors.New(i18n.T("только Windows")) }
 
 func Installed() bool { return false }
 
-func (WinRegistry) DeleteIfEmpty(key string) error { return errors.New("только Windows") }
+func (WinRegistry) DeleteIfEmpty(key string) error { return errors.New(i18n.T("только Windows")) }

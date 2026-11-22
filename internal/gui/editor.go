@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
+	"vidpreset/internal/i18n"
 
 	"gioui.org/layout"
 	"gioui.org/widget"
@@ -129,9 +131,10 @@ func newEditor(path string, cfg *preset.Config, hooks EditorHooks) *Editor {
 func NewEditor(path string, cfg *preset.Config, hooks EditorHooks) *Editor {
 	e := newEditor(path, cfg, hooks)
 	e.win = Open("vidpreset", 1180, 780, e)
+	e.win.OnScale = func(p int) { e.persistUI(func(s *preset.Settings) { s.UIScale = p }) }
 	e.startProbe(false)
 	if hooks.Installed != nil && !hooks.Installed() {
-		e.confirm("Меню не установлено", "Пункты в контекстном меню Explorer ещё не созданы. Установить сейчас?", "Установить", false, e.installMenu)
+		e.confirm(i18n.T("Меню не установлено"), i18n.T("Пункты в контекстном меню Explorer ещё не созданы. Установить сейчас?"), i18n.T("Установить"), false, e.installMenu)
 	}
 	return e
 }
@@ -162,7 +165,7 @@ func (e *Editor) CanClose() bool {
 	if !e.dirty {
 		return true
 	}
-	e.confirm("Несохранённые изменения", "Закрыть редактор и потерять изменения?", "Закрыть без сохранения", true, func() { e.win.Close() })
+	e.confirm(i18n.T("Несохранённые изменения"), i18n.T("Закрыть редактор и потерять изменения?"), i18n.T("Закрыть без сохранения"), true, func() { e.win.Close() })
 	return false
 }
 
@@ -351,7 +354,7 @@ func (e *Editor) startProbe(force bool) {
 		if err != nil {
 			e.mu.Lock()
 			e.ffVersion, e.probing = "", false
-			e.probeErr = fmt.Errorf("ffmpeg не найден")
+			e.probeErr = fmt.Errorf("%s", i18n.T("ffmpeg не найден"))
 			e.mu.Unlock()
 			e.win.Invalidate()
 			return
@@ -387,12 +390,12 @@ func (e *Editor) statusText() string {
 	case perr != nil:
 		s += " · " + perr.Error()
 	case probing || !ready:
-		s += " · проверка энкодеров…"
+		s += i18n.T(" · проверка энкодеров…")
 	default:
 		var hw []string
-		for _, f := range familyNames[1:] {
+		for _, f := range familyNames()[1:] {
 			var codecs []string
-			for _, c := range codecOpts[1:] {
+			for _, c := range codecOpts()[1:] {
 				if rep.OK(cmdbuild.EncoderName(c.Val, f.Val)) {
 					codecs = append(codecs, strings.Fields(c.Label)[0])
 				}
@@ -402,15 +405,15 @@ func (e *Editor) statusText() string {
 			}
 		}
 		if len(hw) == 0 {
-			s += " · аппаратных энкодеров нет"
+			s += i18n.T(" · аппаратных энкодеров нет")
 		} else {
-			s += " · аппаратные: " + strings.Join(hw, ", ")
+			s += i18n.T(" · аппаратные: ") + strings.Join(hw, ", ")
 		}
 	}
 	if e.hooks.Installed != nil && e.hooks.Installed() {
-		s += " · меню установлено"
+		s += i18n.T(" · меню установлено")
 	} else {
-		s += " · меню не установлено"
+		s += i18n.T(" · меню не установлено")
 	}
 	return s
 }
@@ -419,19 +422,19 @@ func (e *Editor) statusText() string {
 func (e *Editor) encoderHint(codec, current string) string {
 	rep, ready := e.encReport()
 	if !ready {
-		return "Проверяю, какие энкодеры доступны на этой машине…"
+		return i18n.T("Проверяю, какие энкодеры доступны на этой машине…")
 	}
 	var down []string
-	for _, f := range familyNames {
+	for _, f := range familyNames() {
 		enc := cmdbuild.EncoderName(codec, f.Val)
 		if !rep.OK(enc) {
 			down = append(down, f.Label+": "+rep.Why(enc))
 		}
 	}
 	if len(down) == 0 {
-		return hwHint
+		return hwHint()
 	}
-	return "Недоступно на этой машине:\n• " + strings.Join(down, "\n• ") + "\n" + hwHint
+	return i18n.T("Недоступно на этой машине:\n• ") + strings.Join(down, "\n• ") + "\n" + hwHint()
 }
 
 // ---- preview / validation ------------------------------------------------------------------------------------
@@ -443,7 +446,7 @@ func (e *Editor) refreshPreview() {
 	}
 	var issues []cmdbuild.Issue
 	if e.argsErr != nil {
-		issues = append(issues, cmdbuild.Issue{Severity: cmdbuild.Error, Msg: "Аргументы: " + e.argsErr.Error()})
+		issues = append(issues, cmdbuild.Issue{Severity: cmdbuild.Error, Msg: i18n.T("Аргументы: ") + e.argsErr.Error()})
 	}
 	if c.Structured() {
 		issues = append(issues, cmdbuild.Validate(*c)...)
@@ -459,7 +462,7 @@ func (e *Editor) refreshPreview() {
 	if cmdbuild.NeedsTwoPass(*c) {
 		for pass := 1; pass <= 2; pass++ {
 			if a, err := cmdbuild.Args(*c, "input.mp4", out, cmdbuild.Opts{SrcExt: ".mp4", Preview: true, Pass: pass, PassLog: "pass"}); err == nil {
-				lines = append(lines, fmt.Sprintf("# проход %d из 2", pass), "ffmpeg "+preset.JoinArgs(a))
+				lines = append(lines, fmt.Sprintf(i18n.T("# проход %d из 2"), pass), "ffmpeg "+preset.JoinArgs(a))
 			}
 		}
 	} else if a, err := cmdbuild.Args(*c, "input.mp4", out, cmdbuild.Opts{SrcExt: ".mp4", Preview: true}); err == nil {
@@ -480,12 +483,12 @@ func (e *Editor) validate() error {
 	for _, p := range e.cfg.Presets {
 		for _, is := range cmdbuild.Validate(p) {
 			if is.Severity == cmdbuild.Error {
-				return fmt.Errorf("пресет «%s»: %s", p.Name, is.Msg)
+				return fmt.Errorf(i18n.T("пресет «%s»: %s"), p.Name, is.Msg)
 			}
 		}
 	}
 	if e.argsErr != nil {
-		return fmt.Errorf("пресет «%s»: аргументы: %w", e.cur().Name, e.argsErr)
+		return fmt.Errorf(i18n.T("пресет «%s»: аргументы: %w"), e.cur().Name, e.argsErr)
 	}
 	return nil
 }
@@ -522,7 +525,7 @@ func (e *Editor) dupPreset() {
 	}
 	n := clonePreset(*c)
 	n.ID = e.freeID(c.ID + "-copy")
-	n.Name += " (копия)"
+	n.Name += i18n.T(" (копия)")
 	e.cfg.Presets = append(e.cfg.Presets, n)
 	e.selectPreset(len(e.cfg.Presets) - 1)
 	e.recomputeDirty()
@@ -533,7 +536,7 @@ func (e *Editor) deletePreset() {
 	if c == nil {
 		return
 	}
-	e.confirm("Удалить пресет", "Удалить «"+c.Name+"»? Чтобы просто убрать его из меню, выключите переключатель в списке.", "Удалить", true, func() {
+	e.confirm(i18n.T("Удалить пресет"), i18n.T("Удалить «")+c.Name+i18n.T("»? Чтобы просто убрать его из меню, выключите переключатель в списке."), i18n.T("Удалить"), true, func() {
 		i := e.sel
 		e.cfg.Presets = append(e.cfg.Presets[:i], e.cfg.Presets[i+1:]...)
 		if i >= len(e.cfg.Presets) {
@@ -557,40 +560,40 @@ func (e *Editor) move(d int) {
 
 func (e *Editor) save() {
 	if err := e.validate(); err != nil {
-		e.info("Не удалось сохранить", err.Error(), true)
+		e.info(i18n.T("Не удалось сохранить"), err.Error(), true)
 		return
 	}
 	if err := preset.Save(e.path, e.cfg); err != nil {
-		e.info("Не удалось сохранить", err.Error(), true)
+		e.info(i18n.T("Не удалось сохранить"), err.Error(), true)
 		return
 	}
 	e.snapshot()
 	e.recomputeDirty()
 	if err := e.hooks.Install(e.cfg); err != nil {
-		e.info("Пресеты сохранены, но меню не обновлено", err.Error(), true)
+		e.info(i18n.T("Пресеты сохранены, но меню не обновлено"), err.Error(), true)
 		return
 	}
-	e.setToast("Сохранено, меню обновлено")
+	e.setToast(i18n.T("Сохранено, меню обновлено"))
 }
 
 func (e *Editor) installMenu() {
 	c, err := preset.Load(e.path)
 	if err != nil {
-		e.info("Меню", err.Error(), true)
+		e.info(i18n.T("Меню"), err.Error(), true)
 		return
 	}
 	if err := e.hooks.Install(c); err != nil {
-		e.info("Меню", err.Error(), true)
+		e.info(i18n.T("Меню"), err.Error(), true)
 		return
 	}
-	e.setToast("Меню установлено по сохранённым пресетам")
+	e.setToast(i18n.T("Меню установлено по сохранённым пресетам"))
 }
 
 func (e *Editor) revert() {
-	e.confirm("Сбросить правки", "Отбросить все несохранённые изменения и вернуть пресеты из файла presets.toml?", "Сбросить", true, func() {
+	e.confirm(i18n.T("Сбросить правки"), i18n.T("Отбросить все несохранённые изменения и вернуть пресеты из файла presets.toml?"), i18n.T("Сбросить"), true, func() {
 		c, err := preset.Load(e.path)
 		if err != nil {
-			e.info("Не удалось загрузить", err.Error(), true)
+			e.info(i18n.T("Не удалось загрузить"), err.Error(), true)
 			return
 		}
 		e.cfg = c
@@ -611,19 +614,19 @@ func (e *Editor) test() {
 		return
 	}
 	if err := c.Validate(); err != nil {
-		e.info("Тест невозможен", err.Error(), true)
+		e.info(i18n.T("Тест невозможен"), err.Error(), true)
 		return
 	}
 	for _, is := range cmdbuild.Validate(*c) {
 		if is.Severity == cmdbuild.Error {
-			e.info("Тест невозможен", is.Msg, true)
+			e.info(i18n.T("Тест невозможен"), is.Msg, true)
 			return
 		}
 	}
 	p := clonePreset(*c)
 	cfg := e.cfg
 	go func() {
-		if path, ok := PickVideoFile("Выберите видео для теста"); ok && e.hooks.Test != nil {
+		if path, ok := PickVideoFile(i18n.T("Выберите видео для теста")); ok && e.hooks.Test != nil {
 			e.hooks.Test(p, path, cfg)
 		}
 	}()
@@ -642,7 +645,7 @@ func (e *Editor) confirm(title, msg, ok string, danger bool, do func()) {
 		Title: title, Close: e.closeDlg,
 		Body: func(gtx C, th *Th) D { return th.Paragraph(gtx, 14, th.P.TextDim, msg) },
 		Actions: []*DAction{
-			{Label: "Отмена", Kind: Ghost, Do: e.closeDlg},
+			{Label: i18n.T("Отмена"), Kind: Ghost, Do: e.closeDlg},
 			{Label: ok, Kind: kind, Do: func() { e.closeDlg(); do() }},
 		},
 	}
@@ -658,7 +661,7 @@ func (e *Editor) info(title, msg string, isErr bool) {
 			}
 			return th.Paragraph(gtx, 14, th.P.TextDim, msg)
 		},
-		Actions: []*DAction{{Label: "Понятно", Kind: Primary, Do: e.closeDlg}},
+		Actions: []*DAction{{Label: i18n.T("Понятно"), Kind: Primary, Do: e.closeDlg}},
 	}
 	e.win.Invalidate()
 }
@@ -684,14 +687,16 @@ func formatImport(r ffimport.Result) string {
 		}
 		b.WriteString("\n")
 	}
-	section("Распознано (попадёт в форму):", r.Recognized)
-	section("Останется в дополнительных аргументах (сырое):", r.Extra)
-	section("Предупреждения:", r.Warnings)
-	section("Не используется (ffmpeg, входной и выходной файлы, служебные флаги):", r.Ignored)
+	section(i18n.T("Распознано (попадёт в форму):"), r.Recognized)
+	section(i18n.T("Останется в дополнительных аргументах (сырое):"), r.Extra)
+	section(i18n.T("Предупреждения:"), r.Warnings)
+	section(i18n.T("Не используется (ffmpeg, входной и выходной файлы, служебные флаги):"), r.Ignored)
 	return strings.TrimSpace(b.String())
 }
 
-const importPrompt = "Вставьте команду ffmpeg: ниже появится, что распознано, а что останется сырым."
+func importPrompt() string {
+	return i18n.T("Вставьте команду ffmpeg: ниже появится, что распознано, а что останется сырым.")
+}
 
 func (e *Editor) importDialog(initial string) {
 	if e.cur() == nil {
@@ -701,15 +706,15 @@ func (e *Editor) importDialog(initial string) {
 	st.field = NewArea(5)
 	st.field.Mono = true
 	st.field.Set(initial)
-	st.report, st.res, st.last = importPrompt, nil, "\x00"
+	st.report, st.res, st.last = importPrompt(), nil, "\x00"
 	e.dlg = &Dialog{
-		Title: "Импорт из команды ffmpeg", Width: 720, Close: e.closeDlg,
+		Title: i18n.T("Импорт из команды ffmpeg"), Width: 720, Close: e.closeDlg,
 		Body: func(gtx C, th *Th) D {
 			if t := st.field.Text(); t != st.last {
 				st.last = t
 				st.res = nil
 				if strings.TrimSpace(t) == "" {
-					st.report = importPrompt
+					st.report = importPrompt()
 				} else if r, err := ffimport.Parse(t); err != nil {
 					st.report = "✖ " + err.Error()
 				} else {
@@ -723,8 +728,8 @@ func (e *Editor) importDialog(initial string) {
 				func(gtx C) D { return th.Paragraph(gtx, 13, th.P.TextDim, st.report) })
 		},
 		Actions: []*DAction{
-			{Label: "Отмена", Kind: Ghost, Do: e.closeDlg},
-			{Label: "Применить к пресету", Kind: Primary, Do: func() {
+			{Label: i18n.T("Отмена"), Kind: Ghost, Do: e.closeDlg},
+			{Label: i18n.T("Применить к пресету"), Kind: Primary, Do: func() {
 				if st.res == nil {
 					return
 				}
@@ -757,7 +762,7 @@ func (e *Editor) convertLegacy() {
 	}
 	a, err := cmdbuild.Args(*c, "input.mp4", "output.mp4", cmdbuild.Opts{})
 	if err != nil {
-		e.info("Импорт", err.Error(), true)
+		e.info(i18n.T("Импорт"), err.Error(), true)
 		return
 	}
 	e.importDialog("ffmpeg " + preset.JoinArgs(a))
@@ -770,6 +775,7 @@ type settingsState struct {
 	autoClose         Switch
 	ffmpeg            *Field
 	sInt, sMode       Seg
+	sLang, sScale     Seg
 	bRecheck          Btn
 }
 
@@ -786,18 +792,33 @@ func (e *Editor) settingsDialog() {
 	st.ffmpeg = NewField()
 	st.ffmpeg.Set(e.cfg.Settings.FFmpegPath)
 	e.dlg = &Dialog{
-		Title: "Параметры", Width: 560, Close: e.closeDlg,
+		Title: i18n.T("Параметры"), Width: 560, Close: e.closeDlg,
 		Body: func(gtx C, th *Th) D {
 			return Vert(gtx, 16,
-				Labeled(th, "Интеграция с Explorer", func(gtx C) D {
-					v, d := st.sInt.Layout(gtx, th, []Opt{{Val: "modern", Label: "Меню Windows 11"}, {Val: "classic", Label: "Классическое"}}, st.integration)
+				Labeled(th, i18n.T("Язык"), func(gtx C) D {
+					v, d := st.sLang.Layout(gtx, th, []Opt{{Val: "en", Label: "English"}, {Val: "ru", Label: "Русский"}}, i18n.Lang())
+					if v != "" && v != i18n.Lang() {
+						e.setLanguage(v)
+					}
+					return d
+				}),
+				Labeled(th, i18n.T("Масштаб интерфейса"), func(gtx C) D {
+					v, d := st.sScale.Layout(gtx, th, scaleOpts(), strconv.Itoa(Scale()))
+					if n, err := strconv.Atoi(v); err == nil {
+						e.setScale(n)
+					}
+					return d
+				}),
+				Hint(th, i18n.T("Ctrl + / Ctrl − / Ctrl 0 в любом окне меняют масштаб.")),
+				Labeled(th, i18n.T("Интеграция с Explorer"), func(gtx C) D {
+					v, d := st.sInt.Layout(gtx, th, []Opt{{Val: "modern", Label: i18n.T("Меню Windows 11")}, {Val: "classic", Label: i18n.T("Классическое")}}, st.integration)
 					if v != "" {
 						st.integration = v
 					}
 					return d
 				}),
-				Labeled(th, "Вид меню", func(gtx C) D {
-					v, d := st.sMode.Layout(gtx, th, []Opt{{Val: "submenu", Label: "Подменю"}, {Val: "single", Label: "Один пункт с окном выбора"}}, st.mode)
+				Labeled(th, i18n.T("Вид меню"), func(gtx C) D {
+					v, d := st.sMode.Layout(gtx, th, []Opt{{Val: "submenu", Label: i18n.T("Подменю")}, {Val: "single", Label: i18n.T("Один пункт с окном выбора")}}, st.mode)
 					if v != "" {
 						st.mode = v
 					}
@@ -808,24 +829,24 @@ func (e *Editor) settingsDialog() {
 						layout.Rigid(func(gtx C) D { return st.autoClose.Layout(gtx, th) }),
 						layout.Rigid(layout.Spacer{Width: 12}.Layout),
 						layout.Rigid(func(gtx C) D {
-							return th.Text(gtx, 14, 400, th.P.Text, "Закрывать окно прогресса после успеха")
+							return th.Text(gtx, 14, 400, th.P.Text, i18n.T("Закрывать окно прогресса после успеха"))
 						}),
 					)
 				},
-				Labeled(th, "Путь к ffmpeg", func(gtx C) D { return st.ffmpeg.Layout(gtx, th, "пусто = искать в PATH") }),
+				Labeled(th, i18n.T("Путь к ffmpeg"), func(gtx C) D { return st.ffmpeg.Layout(gtx, th, i18n.T("пусто = искать в PATH")) }),
 				func(gtx C) D {
 					if st.bRecheck.Clicked(gtx) {
 						e.cfg.Settings.FFmpegPath = strings.TrimSpace(st.ffmpeg.Text())
 						e.startProbe(true)
-						e.setToast("Энкодеры перепроверяются…")
+						e.setToast(i18n.T("Энкодеры перепроверяются…"))
 					}
-					return st.bRecheck.Layout(gtx, th, "Перепроверить энкодеры", Secondary)
+					return st.bRecheck.Layout(gtx, th, i18n.T("Перепроверить энкодеры"), Secondary)
 				},
 			)
 		},
 		Actions: []*DAction{
-			{Label: "Отмена", Kind: Ghost, Do: e.closeDlg},
-			{Label: "Готово", Kind: Primary, Do: func() {
+			{Label: i18n.T("Отмена"), Kind: Ghost, Do: e.closeDlg},
+			{Label: i18n.T("Готово"), Kind: Primary, Do: func() {
 				e.cfg.Settings.Integration, e.cfg.Settings.MenuMode = st.integration, st.mode
 				e.cfg.Settings.AutoClose = st.autoClose.Value
 				e.cfg.Settings.FFmpegPath = strings.TrimSpace(st.ffmpeg.Text())
@@ -842,7 +863,7 @@ type menuState struct{ bInst, bUninst, bCert Btn }
 func (e *Editor) menuDialog() {
 	st := &menuState{}
 	e.dlg = &Dialog{
-		Title: "Меню Windows", Width: 560, Close: e.closeDlg,
+		Title: i18n.T("Меню Windows"), Width: 560, Close: e.closeDlg,
 		Body: func(gtx C, th *Th) D {
 			if st.bInst.Clicked(gtx) {
 				e.closeDlg()
@@ -850,36 +871,85 @@ func (e *Editor) menuDialog() {
 			}
 			if st.bUninst.Clicked(gtx) {
 				e.closeDlg()
-				e.confirm("Удалить меню", "Удалить пункты контекстного меню vidpreset?", "Удалить", true, func() {
+				e.confirm(i18n.T("Удалить меню"), i18n.T("Удалить пункты контекстного меню vidpreset?"), i18n.T("Удалить"), true, func() {
 					if err := e.hooks.Uninstall(); err != nil {
-						e.info("Меню", err.Error(), true)
+						e.info(i18n.T("Меню"), err.Error(), true)
 						return
 					}
-					e.setToast("Меню удалено")
+					e.setToast(i18n.T("Меню удалено"))
 				})
 			}
 			if st.bCert.Clicked(gtx) {
 				e.closeDlg()
-				e.confirm("Сертификат", "Удалить сертификат vidpreset из доверенных? Новое меню Windows 11 нельзя будет установить, пока он не будет добавлен снова.", "Удалить", true, func() {
+				e.confirm(i18n.T("Сертификат"), i18n.T("Удалить сертификат vidpreset из доверенных? Новое меню Windows 11 нельзя будет установить, пока он не будет добавлен снова."), i18n.T("Удалить"), true, func() {
 					if e.hooks.Untrust == nil {
 						return
 					}
 					if err := e.hooks.Untrust(); err != nil {
-						e.info("Сертификат", err.Error(), true)
+						e.info(i18n.T("Сертификат"), err.Error(), true)
 					}
 				})
 			}
 			return Vert(gtx, 12,
-				Hint(th, "Меню обновляется само при каждом «Сохранить». Здесь можно переустановить или убрать его вручную."),
+				Hint(th, i18n.T("Меню обновляется само при каждом «Сохранить». Здесь можно переустановить или убрать его вручную.")),
 				func(gtx C) D {
-					return st.bInst.Layout(gtx, th, "Установить по сохранённым пресетам", Primary)
+					return st.bInst.Layout(gtx, th, i18n.T("Установить по сохранённым пресетам"), Primary)
 				},
-				func(gtx C) D { return st.bUninst.Layout(gtx, th, "Удалить меню", Secondary) },
+				func(gtx C) D { return st.bUninst.Layout(gtx, th, i18n.T("Удалить меню"), Secondary) },
 				func(gtx C) D {
-					return st.bCert.Layout(gtx, th, "Удалить сертификат из доверенных (UAC)", Ghost)
+					return st.bCert.Layout(gtx, th, i18n.T("Удалить сертификат из доверенных (UAC)"), Ghost)
 				},
 			)
 		},
-		Actions: []*DAction{{Label: "Закрыть", Kind: Ghost, Do: e.closeDlg}},
+		Actions: []*DAction{{Label: i18n.T("Закрыть"), Kind: Ghost, Do: e.closeDlg}},
 	}
+}
+
+func scaleOpts() []Opt {
+	var o []Opt
+	cur := Scale()
+	found := false
+	for _, s := range []int{100, 110, 125, 150, 175, 200} {
+		if s == cur {
+			found = true
+		}
+		o = append(o, Opt{Val: strconv.Itoa(s), Label: fmt.Sprintf("%d%%", s)})
+	}
+	if !found {
+		o = append(o, Opt{Val: strconv.Itoa(cur), Label: fmt.Sprintf("%d%%", cur)})
+	}
+	return o
+}
+
+// persistUI saves the language/scale to presets.toml right away without touching unsaved preset edits.
+func (e *Editor) persistUI(mut func(*preset.Settings)) {
+	mut(&e.cfg.Settings)
+	if e.path == "" {
+		return
+	}
+	disk, err := preset.Load(e.path)
+	if err != nil {
+		return // never overwrite a config we cannot read
+	}
+	mut(&disk.Settings)
+	if err := preset.Save(e.path, disk); err != nil {
+		return
+	}
+	e.saved, _ = preset.Encode(disk)
+	e.recomputeDirty()
+}
+
+func (e *Editor) setLanguage(lang string) {
+	i18n.SetLang(lang)
+	e.persistUI(func(s *preset.Settings) { s.Language = lang })
+	InvalidateAll()
+	e.settingsDialog() // rebuild the dialog with translated captions
+}
+
+func (e *Editor) setScale(p int) {
+	if p == Scale() {
+		return
+	}
+	SetScale(p)
+	e.persistUI(func(s *preset.Settings) { s.UIScale = p })
 }

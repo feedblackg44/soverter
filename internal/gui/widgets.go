@@ -61,7 +61,7 @@ func (b *Btn) Layout(gtx layout.Context, th *theme.Theme, label string, kind int
 				bg = theme.Alpha(p.Surface, 0)
 			}
 		}
-		return theme.Box(gtx, bg, border, 8, layout.Inset{Top: 8, Bottom: 8, Left: 14, Right: 14}, func(gtx layout.Context) layout.Dimensions {
+		return theme.Box(gtx, bg, border, 8, layout.Inset{Top: 10, Bottom: 10, Left: 16, Right: 16}, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					if b.Icon == 0 {
@@ -71,7 +71,7 @@ func (b *Btn) Layout(gtx layout.Context, th *theme.Theme, label string, kind int
 						return th.Icon(gtx, b.Icon, 14, fg)
 					})
 				}),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions { return th.Text(gtx, 13, font.Medium, fg, label) }),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions { return th.Text(gtx, 14, font.Medium, fg, label) }),
 			)
 		})
 	})

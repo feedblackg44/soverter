@@ -118,8 +118,8 @@ func (s *Seg) Layout(gtx layout.Context, th *theme.Theme, opts []Opt, sel string
 			case b.Hovered():
 				bg, border, fg = p.Raised, p.BorderStrong, p.Text
 			}
-			return theme.Box(gtx, bg, border, 8, layout.Inset{Top: 7, Bottom: 7, Left: 12, Right: 12}, func(gtx layout.Context) layout.Dimensions {
-				return th.Text(gtx, 13, font.Medium, fg, o.Label)
+			return theme.Box(gtx, bg, border, 8, layout.Inset{Top: 9, Bottom: 9, Left: 14, Right: 14}, func(gtx layout.Context) layout.Dimensions {
+				return th.Text(gtx, 14, font.Medium, fg, o.Label)
 			})
 		})
 	})
@@ -130,10 +130,11 @@ func (s *Seg) Layout(gtx layout.Context, th *theme.Theme, opts []Opt, sel string
 
 // Field is a single- or multi-line text input with a border and hint.
 type Field struct {
-	ed   widget.Editor
-	last string
-	Mono bool
-	Rows int // visible rows for multiline fields (0 = single line)
+	ed    widget.Editor
+	click widget.Clickable
+	last  string
+	Mono  bool
+	Rows  int // visible rows for multiline fields (0 = single line)
 }
 
 // NewField creates a single-line field.
@@ -174,26 +175,48 @@ func (f *Field) Focus(gtx layout.Context) { gtx.Execute(key.FocusCmd{Tag: &f.ed}
 // Layout draws the field.
 func (f *Field) Layout(gtx layout.Context, th *theme.Theme, hint string) layout.Dimensions {
 	p := th.P
+	if f.click.Clicked(gtx) {
+		f.Focus(gtx)
+	}
+	focused := gtx.Focused(&f.ed)
 	border := p.Border
-	if gtx.Focused(&f.ed) {
+	if focused {
 		border = p.Accent
 	}
 	fnt := th.Font(font.Normal)
-	size := float32(14)
+	size := float32(15)
 	if f.Mono {
 		fnt = font.Font{Typeface: th.Mono}
-		size = 13
+		size = 14
 	}
-	return theme.Box(gtx, p.Bg, border, 8, layout.Inset{Top: 9, Bottom: 9, Left: 12, Right: 12}, func(gtx layout.Context) layout.Dimensions {
-		gtx.Constraints.Min.X = gtx.Constraints.Max.X
-		if f.Rows > 0 {
-			gtx.Constraints.Min.Y = gtx.Dp(unit.Dp(float32(f.Rows) * 20))
-		}
-		dims := f.ed.Layout(gtx, th.Shaper, fnt, unit.Sp(size), theme.ColorOp(gtx, p.Text), theme.ColorOp(gtx, p.AccentWash))
-		if f.ed.Len() == 0 && hint != "" {
-			th.Text(gtx, size, font.Normal, p.TextMuted, hint)
-		}
-		return dims
+	return f.click.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		bg := p.Bg
+		return theme.Box(gtx, bg, border, 8, layout.Inset{Left: 12, Right: 12}, func(gtx layout.Context) layout.Dimensions {
+			gtx.Constraints.Min.X = gtx.Constraints.Max.X
+			align := layout.W
+			pad := layout.Inset{}
+			if f.Rows > 0 {
+				align = layout.NW
+				pad = layout.Inset{Top: 11, Bottom: 11}
+				gtx.Constraints.Min.Y = gtx.Dp(unit.Dp(float32(f.Rows)*22 + 22))
+			} else {
+				gtx.Constraints.Min.Y = gtx.Dp(42)
+			}
+			return pad.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				return layout.Stack{Alignment: align}.Layout(gtx,
+					layout.Stacked(func(gtx layout.Context) layout.Dimensions {
+						gtx.Constraints.Min.X = gtx.Constraints.Max.X
+						return f.ed.Layout(gtx, th.Shaper, fnt, unit.Sp(size), theme.ColorOp(gtx, p.Text), theme.ColorOp(gtx, p.AccentWash))
+					}),
+					layout.Stacked(func(gtx layout.Context) layout.Dimensions {
+						if f.ed.Len() != 0 || hint == "" {
+							return layout.Dimensions{}
+						}
+						return widget.Label{MaxLines: 1, Truncator: "…"}.Layout(gtx, th.Shaper, fnt, unit.Sp(size), hint, theme.ColorOp(gtx, p.TextMuted))
+					}),
+				)
+			})
+		})
 	})
 }
 
@@ -305,7 +328,7 @@ func Labeled(th *theme.Theme, caption string, body layout.Widget) layout.Widget 
 	return func(gtx layout.Context) layout.Dimensions {
 		return Vert(gtx, 6,
 			func(gtx layout.Context) layout.Dimensions {
-				return th.Text(gtx, 12, font.Medium, th.P.TextDim, caption)
+				return th.Text(gtx, 13, font.Medium, th.P.TextDim, caption)
 			},
 			body)
 	}
@@ -313,7 +336,7 @@ func Labeled(th *theme.Theme, caption string, body layout.Widget) layout.Widget 
 
 // Hint is dim wrapping helper text.
 func Hint(th *theme.Theme, s string) layout.Widget {
-	return func(gtx layout.Context) layout.Dimensions { return th.Paragraph(gtx, 12, th.P.TextMuted, s) }
+	return func(gtx layout.Context) layout.Dimensions { return th.Paragraph(gtx, 13, th.P.TextMuted, s) }
 }
 
 // Section is a titled card.
@@ -353,7 +376,7 @@ func Banner(gtx layout.Context, th *theme.Theme, kind, msg string) layout.Dimens
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return layout.Inset{Right: 10, Top: 1}.Layout(gtx, func(gtx layout.Context) layout.Dimensions { return th.Icon(gtx, rune(ic), 15, c) })
 			}),
-			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions { return th.Paragraph(gtx, 13, p.Text, msg) }),
+			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions { return th.Paragraph(gtx, 14, p.Text, msg) }),
 		)
 	})
 }

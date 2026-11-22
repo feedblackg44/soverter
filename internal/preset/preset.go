@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"vidpreset/internal/i18n"
 
 	"github.com/BurntSushi/toml"
 )
@@ -44,6 +45,8 @@ type Settings struct {
 	Integration string `toml:"integration"` // "modern" (Windows 11 menu) | "classic" (registry verbs)
 	AutoClose   bool   `toml:"auto_close"`
 	FFmpegPath  string `toml:"ffmpeg_path,omitempty"`
+	Language    string `toml:"language,omitempty"`          // "en" (default) | "ru"
+	UIScale     int    `toml:"ui_scale,omitempty,omitzero"` // interface scale in percent (0 = 100)
 }
 
 type Config struct {
@@ -58,22 +61,22 @@ func ValidID(id string) bool { return idRe.MatchString(id) }
 // Validate checks a single preset (not uniqueness).
 func (p Preset) Validate() error {
 	if !ValidID(p.ID) {
-		return fmt.Errorf("недопустимый id %q (разрешены a-z0-9-)", p.ID)
+		return fmt.Errorf(i18n.T("недопустимый id %q (разрешены a-z0-9-)"), p.ID)
 	}
 	if strings.TrimSpace(p.Name) == "" {
-		return fmt.Errorf("preset %s: пустое name", p.ID)
+		return fmt.Errorf(i18n.T("preset %s: пустое name"), p.ID)
 	}
 	if strings.TrimSpace(p.Suffix) == "" {
-		return fmt.Errorf("preset %s: пустой suffix", p.ID)
+		return fmt.Errorf(i18n.T("preset %s: пустой suffix"), p.ID)
 	}
 	if strings.TrimSpace(p.Ext) == "" {
-		return fmt.Errorf("preset %s: пустое ext", p.ID)
+		return fmt.Errorf(i18n.T("preset %s: пустое ext"), p.ID)
 	}
 	if p.Structured() {
 		return p.validateStructured()
 	}
 	if p.VF == "" && p.AF == "" && len(p.Args) == 0 {
-		return fmt.Errorf("preset %s: нужно хотя бы одно из vf/af/args", p.ID)
+		return fmt.Errorf(i18n.T("preset %s: нужно хотя бы одно из vf/af/args"), p.ID)
 	}
 	return nil
 }
@@ -86,7 +89,7 @@ func ValidateAll(ps []Preset) error {
 			return err
 		}
 		if seen[p.ID] {
-			return fmt.Errorf("повторяющийся id %q", p.ID)
+			return fmt.Errorf(i18n.T("повторяющийся id %q"), p.ID)
 		}
 		seen[p.ID] = true
 	}
@@ -124,7 +127,7 @@ func Parse(data []byte) (*Config, error) {
 	c := &Config{Settings: Settings{MenuMode: "submenu", Integration: "modern"}}
 	if _, err := toml.Decode(string(data), c); err != nil {
 		if pe, ok := err.(toml.ParseError); ok {
-			return nil, fmt.Errorf("ошибка в строке %d: %s", pe.Position.Line, pe.Message)
+			return nil, fmt.Errorf(i18n.T("ошибка в строке %d: %s"), pe.Position.Line, pe.Message)
 		}
 		return nil, err
 	}
@@ -194,10 +197,10 @@ func Defaults() *Config {
 		Presets: []Preset{
 			{ID: "stretch-fhd", Name: "4:3 → 16:9 (FHD)", Suffix: "fhd", Ext: "mp4", Video: v(CodecH264, 18, "medium", ScaleStretch, 1920, 1080, 0), Audio: copyAudio},
 			{ID: "stretch-qhd", Name: "4:3 → 16:9 (QHD)", Suffix: "qhd", Ext: "mp4", Video: v(CodecH264, 18, "medium", ScaleStretch, 2560, 1440, 0), Audio: copyAudio},
-			{ID: "volume-down", Name: "Громкость −6 дБ", Suffix: "vol", Ext: "same", Video: &Video{Codec: CodecCopy}, Audio: &Audio{Mode: AudioAAC, Bitrate: "192k", VolumeDB: -6}},
+			{ID: "volume-down", Name: i18n.T("Громкость −6 дБ"), Suffix: "vol", Ext: "same", Video: &Video{Codec: CodecCopy}, Audio: &Audio{Mode: AudioAAC, Bitrate: "192k", VolumeDB: -6}},
 			{ID: "fps-30", Name: "30 fps", Suffix: "30fps", Ext: "mp4", Video: v(CodecH264, 18, "medium", ScaleNone, 0, 0, 30), Audio: copyAudio},
-			{ID: "scale-720p", Name: "Разрешение 720p", Suffix: "720p", Ext: "mp4", Video: v(CodecH264, 20, "medium", ScaleKeep, 0, 720, 0), Audio: copyAudio},
-			{ID: "h265", Name: "Перекодировать в H.265", Suffix: "h265", Ext: "mp4", Video: v(CodecH265, 24, "medium", ScaleNone, 0, 0, 0), Audio: copyAudio},
+			{ID: "scale-720p", Name: i18n.T("Разрешение 720p"), Suffix: "720p", Ext: "mp4", Video: v(CodecH264, 20, "medium", ScaleKeep, 0, 720, 0), Audio: copyAudio},
+			{ID: "h265", Name: i18n.T("Перекодировать в H.265"), Suffix: "h265", Ext: "mp4", Video: v(CodecH265, 24, "medium", ScaleNone, 0, 0, 0), Audio: copyAudio},
 		},
 	}
 }
@@ -231,7 +234,7 @@ func SplitArgs(s string) ([]string, error) {
 		}
 	}
 	if quote != 0 {
-		return nil, fmt.Errorf("незакрытая кавычка")
+		return nil, fmt.Errorf("%s", i18n.T("незакрытая кавычка"))
 	}
 	if in {
 		out = append(out, cur.String())

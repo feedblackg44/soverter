@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+	"vidpreset/internal/i18n"
 
 	"golang.org/x/sys/windows/registry"
 
@@ -99,10 +100,10 @@ func TrustCert() error {
 	_, err = powershell(fmt.Sprintf(`Start-Process powershell -Verb RunAs -Wait -WindowStyle Hidden -ArgumentList '-NoProfile','-Command',"%s"`,
 		strings.ReplaceAll(inner, `"`, "`\"")))
 	if err != nil {
-		return errors.New("не удалось запросить права администратора для установки сертификата (отмена UAC?)")
+		return errors.New(i18n.T("не удалось запросить права администратора для установки сертификата (отмена UAC?)"))
 	}
 	if !CertTrusted() {
-		return errors.New("сертификат не был добавлен в доверенные (подтвердите запрос UAC)")
+		return errors.New(i18n.T("сертификат не был добавлен в доверенные (подтвердите запрос UAC)"))
 	}
 	return nil
 }
@@ -116,7 +117,7 @@ func UntrustCert() error {
 	inner := fmt.Sprintf(`Remove-Item 'Cert:\LocalMachine\TrustedPeople\%s' -ErrorAction SilentlyContinue`, th)
 	_, err := powershell(fmt.Sprintf(`Start-Process powershell -Verb RunAs -Wait -WindowStyle Hidden -ArgumentList '-NoProfile','-Command',"%s"`, inner))
 	if err != nil {
-		return errors.New("не удалось запросить права администратора (отмена UAC?)")
+		return errors.New(i18n.T("не удалось запросить права администратора (отмена UAC?)"))
 	}
 	return nil
 }
@@ -124,7 +125,7 @@ func UntrustCert() error {
 // Install writes menu.txt and (if needed) registers the package. Safe to call after every preset change.
 func Install(exe string, presets []preset.Preset, mode string) error {
 	if len(msixBytes()) == 0 {
-		return errors.New("в сборке нет пакета меню Windows 11: запустите shellext\\package.ps1 и пересоберите exe")
+		return errors.New(i18n.T("в сборке нет пакета меню Windows 11: запустите shellext\\package.ps1 и пересоберите exe"))
 	}
 	if err := writeMenu(exe, presets, mode); err != nil {
 		return err
@@ -155,7 +156,7 @@ func Install(exe string, presets []preset.Preset, mode string) error {
 		return err
 	}
 	if out, err := powershell(fmt.Sprintf(`Add-AppxPackage -Path '%s'`, msix)); err != nil {
-		return errors.New("не удалось зарегистрировать меню Windows 11:\n" + out)
+		return errors.New(i18n.T("не удалось зарегистрировать меню Windows 11:\n") + out)
 	}
 	return os.WriteFile(verFile, []byte(Version()), 0o644)
 }
@@ -163,7 +164,7 @@ func Install(exe string, presets []preset.Preset, mode string) error {
 func removePackage() error {
 	out, err := powershell(fmt.Sprintf(`Get-AppxPackage -Name '%s' | Remove-AppxPackage`, PackageName))
 	if err != nil {
-		return fmt.Errorf("не удалось удалить пакет меню: %s", out)
+		return fmt.Errorf(i18n.T("не удалось удалить пакет меню: %s"), out)
 	}
 	return nil
 }

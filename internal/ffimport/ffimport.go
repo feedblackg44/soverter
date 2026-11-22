@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"vidpreset/internal/i18n"
 
 	"vidpreset/internal/cmdbuild"
 	"vidpreset/internal/preset"
@@ -88,10 +89,10 @@ func (p *parser) keep(args ...string) { p.extra = append(p.extra, args...) }
 func Parse(cmdline string) (Result, error) {
 	toks, err := preset.SplitArgs(joinContinuations(cmdline))
 	if err != nil {
-		return Result{}, fmt.Errorf("не удалось разобрать команду: %w", err)
+		return Result{}, fmt.Errorf(i18n.T("не удалось разобрать команду: %w"), err)
 	}
 	if len(toks) == 0 {
-		return Result{}, fmt.Errorf("команда пустая")
+		return Result{}, fmt.Errorf("%s", i18n.T("команда пустая"))
 	}
 	p := &parser{qp: map[string]string{}}
 	p.v = preset.Video{Codec: preset.CodecH264, Encoder: preset.EncCPU, RateMode: preset.RateQuality, ScaleMode: preset.ScaleNone}
@@ -133,7 +134,7 @@ func Parse(cmdline string) (Result, error) {
 		case "-i":
 			v, _ := next()
 			if sawInput {
-				p.warn("Несколько входных файлов (-i) форма не поддерживает: %s оставлен в дополнительных аргументах и, вероятно, не заработает.", v)
+				p.warn(i18n.T("Несколько входных файлов (-i) форма не поддерживает: %s оставлен в дополнительных аргументах и, вероятно, не заработает."), v)
 				p.keep(t, v)
 			} else {
 				sawInput = true
@@ -151,7 +152,7 @@ func Parse(cmdline string) (Result, error) {
 				p.videoCodec("copy")
 				p.audioCodec("copy")
 			} else {
-				p.warn("%s %s применяется ко всем потокам; оставлено в дополнительных аргументах.", t, v)
+				p.warn(i18n.T("%s %s применяется ко всем потокам; оставлено в дополнительных аргументах."), t, v)
 				p.keep(t, v)
 			}
 		case "-crf":
@@ -186,7 +187,7 @@ func Parse(cmdline string) (Result, error) {
 		case "-an":
 			p.a.Mode = preset.AudioRemove
 			p.haveACodec = true
-			p.recognize("Звук: убрать (-an)")
+			p.recognize("%s", i18n.T("Звук: убрать (-an)"))
 		case "-vf", "-filter:v":
 			v, _ := next()
 			p.videoFilters(v)
@@ -200,7 +201,7 @@ func Parse(cmdline string) (Result, error) {
 				if !noValueFlags[t] && i+1 < len(toks) && !strings.HasPrefix(toks[i+1], "-") {
 					v, _ = next()
 				}
-				p.warn("Входная опция %s %s стоит до -i и не поддерживается формой: отброшена.", t, v)
+				p.warn(i18n.T("Входная опция %s %s стоит до -i и не поддерживается формой: отброшена."), t, v)
 				p.ignore("%s %s", t, v)
 				continue
 			}
@@ -219,9 +220,9 @@ func Parse(cmdline string) (Result, error) {
 	// output file = last positional; extra positionals are kept
 	if n := len(positionals); n > 0 {
 		p.outName = positionals[n-1]
-		p.ignore("выходной файл %s", p.outName)
+		p.ignore(i18n.T("выходной файл %s"), p.outName)
 		for _, x := range positionals[:n-1] {
-			p.warn("Неопознанный аргумент %q оставлен в дополнительных.", x)
+			p.warn(i18n.T("Неопознанный аргумент %q оставлен в дополнительных."), x)
 			p.keep(x)
 		}
 	}
@@ -237,14 +238,14 @@ func (p *parser) videoCodec(v string) {
 	p.haveVCodec = true
 	if v == "copy" {
 		p.v.Codec = preset.CodecCopy
-		p.recognize("Видео: без перекодирования (copy)")
+		p.recognize("%s", i18n.T("Видео: без перекодирования (copy)"))
 		return
 	}
 	if m, ok := encoderMap[v]; ok {
 		p.v.Codec, p.v.Encoder = m[0], m[1]
 		return
 	}
-	p.warn("Видеоэнкодер %s форма не поддерживает: он оставлен в дополнительных аргументах и перекроет выбор кодека.", v)
+	p.warn(i18n.T("Видеоэнкодер %s форма не поддерживает: он оставлен в дополнительных аргументах и перекроет выбор кодека."), v)
 	p.keep("-c:v", v)
 }
 
@@ -253,13 +254,13 @@ func (p *parser) audioCodec(v string) {
 	switch v {
 	case "copy":
 		p.a.Mode = preset.AudioCopy
-		p.recognize("Звук: копировать")
+		p.recognize("%s", i18n.T("Звук: копировать"))
 	case "aac", "libfdk_aac", "aac_at":
 		p.a.Mode = preset.AudioAAC
 	case "libopus", "opus":
 		p.a.Mode = preset.AudioOpus
 	default:
-		p.warn("Аудиокодек %s форма не поддерживает: он оставлен в дополнительных аргументах.", v)
+		p.warn(i18n.T("Аудиокодек %s форма не поддерживает: он оставлен в дополнительных аргументах."), v)
 		p.keep("-c:a", v)
 	}
 }
@@ -315,7 +316,7 @@ func (p *parser) videoFilters(chain string) {
 			pm := padRe.FindStringSubmatch(peek(1))
 			if m[1] == pm[1] && m[2] == pm[2] {
 				p.v.ScaleMode, p.v.Width, p.v.Height = preset.ScaleFit, atoi(m[1]), atoi(m[2])
-				p.recognize("Размер: вписать с чёрными полями %s×%s", m[1], m[2])
+				p.recognize(i18n.T("Размер: вписать с чёрными полями %s×%s"), m[1], m[2])
 				i++
 				if setsarOne[peek(1)] {
 					i++
@@ -326,19 +327,19 @@ func (p *parser) videoFilters(chain string) {
 		case scaleKeepRe.MatchString(f):
 			h := scaleKeepRe.FindStringSubmatch(f)[1]
 			p.v.ScaleMode, p.v.Height = preset.ScaleKeep, atoi(h)
-			p.recognize("Размер: сохранить пропорции, высота %s", h)
+			p.recognize(i18n.T("Размер: сохранить пропорции, высота %s"), h)
 		case scaleWHRe.MatchString(f):
 			m := scaleWHRe.FindStringSubmatch(f)
 			p.v.ScaleMode, p.v.Width, p.v.Height = preset.ScaleStretch, atoi(m[1]), atoi(m[2])
-			p.recognize("Размер: растянуть до %s×%s", m[1], m[2])
+			p.recognize(i18n.T("Размер: растянуть до %s×%s"), m[1], m[2])
 			if setsarOne[peek(1)] {
 				i++
 			} else {
-				p.warn("После scale=%s:%s нет setsar=1: форма добавит его (так пропорции пикселя будут корректны).", m[1], m[2])
+				p.warn(i18n.T("После scale=%s:%s нет setsar=1: форма добавит его (так пропорции пикселя будут корректны)."), m[1], m[2])
 			}
 		case fpsRe.MatchString(f):
 			p.v.FPS = atof(fpsRe.FindStringSubmatch(f)[1])
-			p.recognize("Частота кадров: %s fps", fpsRe.FindStringSubmatch(f)[1])
+			p.recognize(i18n.T("Частота кадров: %s fps"), fpsRe.FindStringSubmatch(f)[1])
 		default:
 			p.vfLeft = append(p.vfLeft, f)
 		}
@@ -350,7 +351,7 @@ func (p *parser) audioFilters(chain string) {
 		f = strings.TrimSpace(f)
 		if m := volumeRe.FindStringSubmatch(f); m != nil {
 			p.a.VolumeDB = atof(m[1])
-			p.recognize("Громкость: %s дБ", m[1])
+			p.recognize(i18n.T("Громкость: %s дБ"), m[1])
 			continue
 		}
 		p.afLeft = append(p.afLeft, f)
@@ -382,9 +383,9 @@ func (p *parser) finish() Result {
 	family := v.Encoder
 
 	if !p.haveVCodec {
-		p.warn("Видеокодек (-c:v) не указан: выбран H.264 на CPU.")
+		p.warn("%s", i18n.T("Видеокодек (-c:v) не указан: выбран H.264 на CPU."))
 	} else if v.Codec != preset.CodecCopy {
-		p.recognize("Видео: %s, энкодер %s", map[string]string{"h264": "H.264", "h265": "H.265", "av1": "AV1"}[v.Codec], map[string]string{"cpu": "CPU", "nvenc": "NVIDIA NVENC", "amf": "AMD AMF", "qsv": "Intel QSV"}[family])
+		p.recognize(i18n.T("Видео: %s, энкодер %s"), map[string]string{"h264": "H.264", "h265": "H.265", "av1": "AV1"}[v.Codec], map[string]string{"cpu": "CPU", "nvenc": "NVIDIA NVENC", "amf": "AMD AMF", "qsv": "Intel QSV"}[family])
 	}
 
 	// quality / bitrate
@@ -415,10 +416,10 @@ func (p *parser) finish() Result {
 	if p.bv != "" && p.bv != "0" && qv == "" {
 		if m, ok := bitrateMbit(p.bv); ok {
 			v.RateMode, v.VideoBitrate = preset.RateBitrate, m
-			p.recognize("Режим: по битрейту, %g Мбит/с", m)
+			p.recognize(i18n.T("Режим: по битрейту, %g Мбит/с"), m)
 			if p.maxrate != "" {
 				if mr, ok := bitrateMbit(p.maxrate); ok && math.Abs(mr-m*1.5) < 0.01 {
-					p.recognize("Максимальный битрейт: %g Мбит/с (форма задаёт 1,5× автоматически)", mr)
+					p.recognize(i18n.T("Максимальный битрейт: %g Мбит/с (форма задаёт 1,5× автоматически)"), mr)
 					p.maxrate = ""
 				}
 			}
@@ -427,7 +428,7 @@ func (p *parser) finish() Result {
 		}
 	} else if p.bv != "" {
 		if p.bv == "0" {
-			p.recognize("-b:v 0 (нужен для режима качества NVENC; форма добавляет его сама)")
+			p.recognize("%s", i18n.T("-b:v 0 (нужен для режима качества NVENC; форма добавляет его сама)"))
 		} else {
 			p.keep("-b:v", p.bv)
 		}
@@ -436,10 +437,10 @@ func (p *parser) finish() Result {
 		if f, err := strconv.ParseFloat(qv, 64); err == nil {
 			v.Quality = int(math.Round(f))
 			if f != math.Round(f) {
-				p.warn("Качество %s округлено до %d.", qv, v.Quality)
+				p.warn(i18n.T("Качество %s округлено до %d."), qv, v.Quality)
 			}
 			v.RateMode = preset.RateQuality
-			p.recognize("Качество: %d", v.Quality)
+			p.recognize(i18n.T("Качество: %d"), v.Quality)
 		} else {
 			p.keep("-crf", qv)
 		}
@@ -460,7 +461,7 @@ func (p *parser) finish() Result {
 	}
 	if p.rc != "" {
 		if oneOf(p.rc, "vbr", "cqp", "vbr_peak") && v.Codec != preset.CodecCopy && family != preset.EncCPU {
-			p.recognize("-rc %s (форма задаёт сама)", p.rc)
+			p.recognize(i18n.T("-rc %s (форма задаёт сама)"), p.rc)
 		} else {
 			p.keep("-rc", p.rc)
 		}
@@ -481,14 +482,14 @@ func (p *parser) finish() Result {
 				break
 			}
 		}
-		p.recognize("Скорость кодирования: %s", raw)
+		p.recognize(i18n.T("Скорость кодирования: %s"), raw)
 	}
 
 	// fps from -r
 	if p.fpsOpt != "" {
 		if f := atof(p.fpsOpt); f > 0 && v.FPS == 0 {
 			v.FPS = f
-			p.recognize("Частота кадров: %s fps (-r)", p.fpsOpt)
+			p.recognize(i18n.T("Частота кадров: %s fps (-r)"), p.fpsOpt)
 		} else {
 			p.keep("-r", p.fpsOpt)
 		}
@@ -500,7 +501,7 @@ func (p *parser) finish() Result {
 	// hvc1 tag
 	if p.tagHvc1 {
 		if v.Codec == preset.CodecH265 && (ext == "" || ext == "mp4" || ext == "mov" || ext == "m4v") {
-			p.recognize("-tag:v hvc1 (форма добавляет для H.265 в mp4/mov сама)")
+			p.recognize("%s", i18n.T("-tag:v hvc1 (форма добавляет для H.265 в mp4/mov сама)"))
 		} else {
 			p.keep("-tag:v", "hvc1")
 		}
@@ -508,15 +509,15 @@ func (p *parser) finish() Result {
 
 	// audio
 	if !p.haveACodec {
-		p.warn("Аудиокодек (-c:a) не указан: выбрано «копировать». ffmpeg по умолчанию перекодировал бы звук.")
+		p.warn("%s", i18n.T("Аудиокодек (-c:a) не указан: выбрано «копировать». ffmpeg по умолчанию перекодировал бы звук."))
 	}
 	if a.Mode == preset.AudioAAC || a.Mode == preset.AudioOpus {
 		a.Bitrate = p.audioBitrate
 		name := map[string]string{"aac": "AAC", "opus": "Opus"}[a.Mode]
 		if p.audioBitrate != "" {
-			p.recognize("Звук: %s, %s", name, p.audioBitrate)
+			p.recognize(i18n.T("Звук: %s, %s"), name, p.audioBitrate)
 		} else {
-			p.recognize("Звук: %s (битрейт по умолчанию)", name)
+			p.recognize(i18n.T("Звук: %s (битрейт по умолчанию)"), name)
 		}
 	} else if p.audioBitrate != "" {
 		p.keep("-b:a", p.audioBitrate)

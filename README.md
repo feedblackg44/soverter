@@ -117,6 +117,13 @@ volume_db = -6
 `-rc cqp -qp_i N -qp_p N [-qp_b N] -quality speed|balanced|quality`. По битрейту: CPU `-b:v NM`; NVENC
 `-rc vbr -b:v NM -maxrate 1.5·NM`; AMF `-rc vbr_peak -b:v NM -maxrate 1.5·NM`; QSV `-b:v NM -maxrate 1.5·NM`.
 
+## Язык и масштаб
+
+По умолчанию интерфейс английский; язык (English / Русский) и масштаб (100–200%) меняются в «Параметры»
+и применяются сразу, настройки пишутся в `[settings]` (`language`, `ui_scale`) без «Сохранить». Масштаб также меняют
+`Ctrl+=`, `Ctrl+-`, `Ctrl+0` в любом окне, это удобно на QHD/4K, если нельзя поднять масштаб Windows.
+Шрифт Roboto вшит в exe, тема (тёмная/светлая) берётся из настроек Windows.
+
 ## Заметки
 
 - `ext = "same"` — расширение источника.

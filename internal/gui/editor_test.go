@@ -57,3 +57,23 @@ func TestDirtyTracking(t *testing.T) {
 		t.Fatal("rename must make editor dirty")
 	}
 }
+
+func TestStepScale(t *testing.T) {
+	defer SetScale(100)
+	SetScale(100)
+	if got := stepScale(1); got != 110 {
+		t.Fatalf("100 -> %d", got)
+	}
+	SetScale(250)
+	if got := stepScale(1); got != 250 {
+		t.Fatalf("must clamp at the top, got %d", got)
+	}
+	SetScale(75)
+	if got := stepScale(-1); got != 75 {
+		t.Fatalf("must clamp at the bottom, got %d", got)
+	}
+	SetScale(120) // off-grid value goes to the neighbours
+	if up, down := stepScale(1), stepScale(-1); up != 125 || down != 110 {
+		t.Fatalf("off-grid: up %d down %d", up, down)
+	}
+}

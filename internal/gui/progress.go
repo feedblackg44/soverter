@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"vidpreset/internal/i18n"
 
 	"gioui.org/io/clipboard"
 	"gioui.org/layout"
@@ -40,7 +41,7 @@ func OpenProgress(tools runner.Tools, autoClose bool, onClose func()) *ProgressV
 			p.win.Invalidate()
 		}
 	})
-	p.win = Open("vidpreset — очередь", 620, 420, p)
+	p.win = Open(i18n.T("vidpreset — очередь"), 620, 420, p)
 	return p
 }
 
@@ -81,10 +82,10 @@ func (p *ProgressView) Layout(gtx layout.Context, th *theme.Theme) layout.Dimens
 		row := QueueRow{File: filepath.Base(it.File), Preset: it.Preset.Name, Frac: -1}
 		switch it.Status {
 		case runner.Pending:
-			row.State, row.Info = "pending", "В очереди"
+			row.State, row.Info = "pending", i18n.T("В очереди")
 		case runner.Running:
 			row.State = "running"
-			row.Info = "Кодирование… " + fmtDur(it.Progress.OutTime)
+			row.Info = i18n.T("Кодирование… ") + fmtDur(it.Progress.OutTime)
 			if it.Total > 0 {
 				frac := float64(it.Progress.OutTime) / float64(it.Total)
 				if frac > 1 {
@@ -96,27 +97,27 @@ func (p *ProgressView) Layout(gtx layout.Context, th *theme.Theme) layout.Dimens
 					row.Info += fmt.Sprintf(" · %.2fx", it.Progress.Speed)
 				}
 				if eta, ok := runner.ETA(it.Total, it.Progress); ok {
-					row.Info += " · осталось " + fmtDur(eta)
+					row.Info += i18n.T(" · осталось ") + fmtDur(eta)
 				}
 			} else {
 				row.Frac = 0
 			}
 			if it.Progress.Passes > 1 {
-				row.Info = fmt.Sprintf("проход %d из %d · %s", it.Progress.Pass, it.Progress.Passes, row.Info)
+				row.Info = fmt.Sprintf(i18n.T("проход %d из %d · %s"), it.Progress.Pass, it.Progress.Passes, row.Info)
 			}
 		case runner.Done:
-			row.State, row.Info = "done", "Готово"
-			row.Action, row.ActionLabel = &p.acts[i], "Показать в папке"
+			row.State, row.Info = "done", i18n.T("Готово")
+			row.Action, row.ActionLabel = &p.acts[i], i18n.T("Показать в папке")
 			if p.acts[i].Clicked(gtx) {
 				showInFolder(it.Output)
 			}
 		case runner.Canceled:
-			row.State, row.Info = "canceled", "Отменено"
+			row.State, row.Info = "canceled", i18n.T("Отменено")
 		case runner.Failed:
 			failed = true
 			msg := it.Err.Error()
 			row.State, row.Info = "failed", msg
-			row.Action, row.ActionLabel = &p.acts[i], "Копировать ошибку"
+			row.Action, row.ActionLabel = &p.acts[i], i18n.T("Копировать ошибку")
 			if p.acts[i].Clicked(gtx) {
 				gtx.Execute(clipboard.WriteCmd{Type: "application/text", Data: io.NopCloser(strings.NewReader(msg))})
 			}
@@ -139,7 +140,7 @@ func (p *ProgressView) Layout(gtx layout.Context, th *theme.Theme) layout.Dimens
 			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 				if len(rows) == 0 {
 					return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						return th.Text(gtx, 14, 400, th.P.TextMuted, "Очередь пуста")
+						return th.Text(gtx, 14, 400, th.P.TextMuted, i18n.T("Очередь пуста"))
 					})
 				}
 				return p.list.List.Layout(gtx, len(rows), func(gtx layout.Context, i int) layout.Dimensions {
@@ -150,7 +151,7 @@ func (p *ProgressView) Layout(gtx layout.Context, th *theme.Theme) layout.Dimens
 				return layout.Inset{Top: 8}.Layout(g, func(gtx layout.Context) layout.Dimensions {
 					return layout.Flex{Spacing: layout.SpaceStart}.Layout(gtx,
 						layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-							return p.cancel.Layout(gtx, th, "Отменить текущий", Secondary)
+							return p.cancel.Layout(gtx, th, i18n.T("Отменить текущий"), Secondary)
 						}))
 				})
 			}),

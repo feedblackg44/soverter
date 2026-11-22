@@ -16,6 +16,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"vidpreset/internal/i18n"
 
 	"vidpreset/internal/runner"
 )
@@ -70,13 +71,13 @@ func ListContains(list, name string) bool {
 func Reason(name string) string {
 	switch {
 	case strings.HasSuffix(name, "_nvenc"):
-		return "нет видеокарты NVIDIA с поддержкой этого кодека или не установлен драйвер"
+		return i18n.T("нет видеокарты NVIDIA с поддержкой этого кодека или не установлен драйвер")
 	case strings.HasSuffix(name, "_amf"):
-		return "нет видеокарты AMD с поддержкой этого кодека или не установлен драйвер"
+		return i18n.T("нет видеокарты AMD с поддержкой этого кодека или не установлен драйвер")
 	case strings.HasSuffix(name, "_qsv"):
-		return "нет графики Intel с поддержкой этого кодека или не установлен драйвер"
+		return i18n.T("нет графики Intel с поддержкой этого кодека или не установлен драйвер")
 	}
-	return "энкодер не запускается"
+	return i18n.T("энкодер не запускается")
 }
 
 // Evaluate is the pure core: it combines the encoder list with trial results.
@@ -90,7 +91,7 @@ func Evaluate(list string, probe func(name string) error, parallel int) Report {
 		if ListContains(list, n) {
 			set(n, Status{Available: true})
 		} else {
-			set(n, Status{Reason: "в вашей сборке ffmpeg нет этого энкодера (winget install Gyan.FFmpeg)"})
+			set(n, Status{Reason: i18n.T("в вашей сборке ffmpeg нет этого энкодера (winget install Gyan.FFmpeg)")})
 		}
 	}
 	if parallel < 1 {
@@ -100,7 +101,7 @@ func Evaluate(list string, probe func(name string) error, parallel int) Report {
 	var wg sync.WaitGroup
 	for _, n := range Hardware {
 		if !ListContains(list, n) {
-			set(n, Status{Reason: "в вашей сборке ffmpeg нет этого энкодера"})
+			set(n, Status{Reason: i18n.T("в вашей сборке ffmpeg нет этого энкодера")})
 			continue
 		}
 		wg.Add(1)

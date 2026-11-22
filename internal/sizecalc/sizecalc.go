@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"vidpreset/internal/i18n"
 
 	"vidpreset/internal/preset"
 )
@@ -23,7 +24,7 @@ const (
 )
 
 // ErrNoDuration is returned when ffprobe could not determine the duration.
-var ErrNoDuration = errors.New("не удалось определить длительность файла (ffprobe), режим «по размеру» для него недоступен")
+var ErrNoDuration = i18n.Err("не удалось определить длительность файла (ffprobe), режим «по размеру» для него недоступен")
 
 // Media is what we need to know about the source.
 type Media struct {
@@ -101,7 +102,7 @@ func ParseBitrate(s string) (float64, error) {
 	}
 	f, err := strconv.ParseFloat(s, 64)
 	if err != nil || f <= 0 {
-		return 0, fmt.Errorf("неверный битрейт %q", s)
+		return 0, fmt.Errorf(i18n.T("неверный битрейт %q"), s)
 	}
 	return f * mult, nil
 }
@@ -137,14 +138,14 @@ func VideoKbps(targetMB float64, m Media, a preset.Audio) (int, error) {
 		return 0, ErrNoDuration
 	}
 	if targetMB <= 0 {
-		return 0, errors.New("не задан целевой размер")
+		return 0, errors.New(i18n.T("не задан целевой размер"))
 	}
 	sec := m.Duration.Seconds()
 	audio := OutputAudioKbps(m, a)
 	kbps := targetMB*8192*(1-ContainerMargin)/sec - audio
 	if kbps < MinVideoKbps {
 		needMB := (MinVideoKbps + audio) * sec / (8192 * (1 - ContainerMargin))
-		return 0, fmt.Errorf("целевой размер %.4g МБ слишком мал для видео длительностью %s: нужно не меньше ~%.1f МБ",
+		return 0, fmt.Errorf(i18n.T("целевой размер %.4g МБ слишком мал для видео длительностью %s: нужно не меньше ~%.1f МБ"),
 			targetMB, m.Duration.Round(time.Second), needMB)
 	}
 	return int(kbps), nil

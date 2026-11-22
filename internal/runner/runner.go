@@ -13,6 +13,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"vidpreset/internal/i18n"
 
 	"vidpreset/internal/cmdbuild"
 	"vidpreset/internal/preset"
@@ -107,11 +108,11 @@ func FindTools(manual string) (Tools, error) {
 	if ff == "" {
 		p, err := exec.LookPath("ffmpeg")
 		if err != nil {
-			return Tools{}, errors.New("ffmpeg не найден в PATH.\nУстановите: winget install Gyan.FFmpeg")
+			return Tools{}, errors.New(i18n.T("ffmpeg не найден в PATH.\nУстановите: winget install Gyan.FFmpeg"))
 		}
 		ff = p
 	} else if _, err := os.Stat(ff); err != nil {
-		return Tools{}, fmt.Errorf("ffmpeg не найден по пути %s", ff)
+		return Tools{}, fmt.Errorf(i18n.T("ffmpeg не найден по пути %s"), ff)
 	}
 	probe := filepath.Join(filepath.Dir(ff), "ffprobe"+filepath.Ext(ff))
 	if _, err := os.Stat(probe); err != nil {
@@ -207,11 +208,11 @@ func (t Tools) CheckEncoders(p preset.Preset) error {
 	needed := append(RequiredEncoders(p.Args), cmdbuild.Encoders(p)...)
 	for _, e := range needed {
 		if !t.HasEncoder(e) {
-			return fmt.Errorf("в вашей сборке ffmpeg нет энкодера %q (нужен пресету «%s»).\nУстановите полную сборку: winget install Gyan.FFmpeg", e, p.Name)
+			return fmt.Errorf(i18n.T("в вашей сборке ffmpeg нет энкодера %q (нужен пресету «%s»).\nУстановите полную сборку: winget install Gyan.FFmpeg"), e, p.Name)
 		}
 		if t.Unavailable != nil {
 			if why := t.Unavailable(e); why != "" {
-				return fmt.Errorf("энкодер %s недоступен на этой машине (нужен пресету «%s»): %s.\nВыберите другой энкодер в редакторе пресета.", e, p.Name, why)
+				return fmt.Errorf(i18n.T("энкодер %s недоступен на этой машине (нужен пресету «%s»): %s.\nВыберите другой энкодер в редакторе пресета."), e, p.Name, why)
 			}
 		}
 	}
@@ -219,7 +220,7 @@ func (t Tools) CheckEncoders(p preset.Preset) error {
 }
 
 // ErrCanceled is returned by Run when ctx was canceled.
-var ErrCanceled = errors.New("отменено")
+var ErrCanceled = i18n.Err("отменено")
 
 // EncodeError carries ffmpeg's stderr tail.
 type EncodeError struct {
@@ -232,7 +233,7 @@ func (e *EncodeError) Error() string { return fmt.Sprintf("ffmpeg: %v\n%s", e.Er
 // ProbeMedia reads duration and audio info with one ffprobe call.
 func (t Tools) ProbeMedia(ctx context.Context, file string) (sizecalc.Media, error) {
 	if t.FFprobe == "" {
-		return sizecalc.Media{}, errors.New("ffprobe не найден: режим «по размеру» недоступен")
+		return sizecalc.Media{}, errors.New(i18n.T("ffprobe не найден: режим «по размеру» недоступен"))
 	}
 	cmd := exec.CommandContext(ctx, t.FFprobe, "-v", "error", "-show_entries",
 		"format=duration,bit_rate:stream=codec_type,bit_rate", "-of", "json", file)
@@ -249,7 +250,7 @@ func (t Tools) ProbeMedia(ctx context.Context, file string) (sizecalc.Media, err
 				detail = s
 			}
 		}
-		return sizecalc.Media{}, fmt.Errorf("ffprobe не смог прочитать файл (режим «по размеру» для него недоступен): %s", detail)
+		return sizecalc.Media{}, fmt.Errorf(i18n.T("ffprobe не смог прочитать файл (режим «по размеру» для него недоступен): %s"), detail)
 	}
 	return sizecalc.ParseProbe(out)
 }

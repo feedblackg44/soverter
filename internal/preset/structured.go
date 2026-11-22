@@ -3,6 +3,7 @@ package preset
 import (
 	"fmt"
 	"strings"
+	"vidpreset/internal/i18n"
 )
 
 // Structured presets are described by the [preset.video] / [preset.audio] tables and built into an
@@ -109,7 +110,7 @@ func oneOf(s string, set ...string) bool {
 func (p Preset) validateStructured() error {
 	v, a := p.Normalized()
 	bad := func(field, val string) error {
-		return fmt.Errorf("preset %s: недопустимое значение %s = %q", p.ID, field, val)
+		return fmt.Errorf(i18n.T("preset %s: недопустимое значение %s = %q"), p.ID, field, val)
 	}
 	if !oneOf(v.Codec, CodecCopy, CodecH264, CodecH265, CodecAV1) {
 		return bad("video.codec", v.Codec)
@@ -127,10 +128,10 @@ func (p Preset) validateStructured() error {
 		return bad("audio.mode", a.Mode)
 	}
 	if v.Quality < 0 || v.Quality > 63 {
-		return fmt.Errorf("preset %s: quality должно быть 0..63", p.ID)
+		return fmt.Errorf(i18n.T("preset %s: quality должно быть 0..63"), p.ID)
 	}
 	if v.VideoBitrate < 0 || v.TargetSizeMB < 0 || v.FPS < 0 || v.Width < 0 || v.Height < 0 {
-		return fmt.Errorf("preset %s: отрицательные значения недопустимы", p.ID)
+		return fmt.Errorf(i18n.T("preset %s: отрицательные значения недопустимы"), p.ID)
 	}
 	if v.Speed != "" && strings.ContainsAny(v.Speed, " \t") {
 		return bad("video.speed", v.Speed)

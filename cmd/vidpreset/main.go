@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"sync"
+	"vidpreset/internal/i18n"
 
 	"vidpreset/internal/gui"
 	"vidpreset/internal/ipc"
@@ -24,26 +25,26 @@ func main() {
 		cmdEdit()
 	case "run":
 		if len(args) < 2 {
-			fatal("использование: vidpreset run <id> <файл>...")
+			fatal(i18n.T("использование: vidpreset run <id> <файл>..."))
 		}
 		cmdRun(args[0], args[1:])
 	case "pick":
 		if len(args) < 1 {
-			fatal("использование: vidpreset pick <файл>...")
+			fatal(i18n.T("использование: vidpreset pick <файл>..."))
 		}
 		cmdPick(args)
 	case "install":
 		attachConsole()
 		cfg := mustLoad()
 		check(installMenu(cfg))
-		fmt.Println("Меню установлено.")
+		fmt.Println(i18n.T("Меню установлено."))
 	case "uninstall":
 		attachConsole()
 		check(uninstallMenu())
 		if len(args) > 0 && args[0] == "--cert" {
 			check(shellext.UntrustCert())
 		}
-		fmt.Println("Меню удалено.")
+		fmt.Println(i18n.T("Меню удалено."))
 	case "list":
 		attachConsole()
 		cfg := mustLoad()
@@ -51,7 +52,7 @@ func main() {
 			fmt.Printf("%-14s %-28s .%s.%s\n", p.ID, p.Name, p.Suffix, p.Ext)
 		}
 	default:
-		fatal("неизвестная команда: " + cmd + "\nдоступно: edit, run, pick, install, uninstall, list")
+		fatal(i18n.T("неизвестная команда: ") + cmd + i18n.T("\nдоступно: edit, run, pick, install, uninstall, list"))
 	}
 }
 
@@ -66,6 +67,7 @@ func mustLoad() *preset.Config {
 	check(err)
 	c, err := preset.Load(p)
 	check(err)
+	gui.Configure(c.Settings)
 	return c
 }
 
@@ -103,7 +105,7 @@ func forwardOrOwn(id string, files []string) (l net.Listener, forwarded bool) {
 		return l, false
 	}
 	if err := ipc.Send(ipc.Msg{Preset: id, Files: files}); err != nil {
-		fatal("не удалось передать задание уже запущенному окну: " + err.Error())
+		fatal(i18n.T("не удалось передать задание уже запущенному окну: ") + err.Error())
 	}
 	return nil, true
 }
@@ -120,7 +122,7 @@ func cmdRun(id string, files []string) {
 	cfg := mustLoad()
 	p, ok := cfg.Find(id)
 	if !ok {
-		fatal("пресет не найден: " + id)
+		fatal(i18n.T("пресет не найден: ") + id)
 	}
 	l, forwarded := forwardOrOwn(id, files)
 	if forwarded {
@@ -157,6 +159,7 @@ func cmdEdit() {
 	check(err)
 	cfg, err := preset.Load(p)
 	check(err)
+	gui.Configure(cfg.Settings)
 	s := &session{cfg: cfg}
 	gui.NewEditor(p, cfg, gui.EditorHooks{
 		Install:   installMenu,

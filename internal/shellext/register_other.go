@@ -4,11 +4,12 @@ package shellext
 
 import (
 	"errors"
+	"vidpreset/internal/i18n"
 
 	"vidpreset/internal/preset"
 )
 
-var errWin = errors.New("только Windows 11")
+var errWin = i18n.Err("только Windows 11")
 
 func Registered() bool                              { return false }
 func CertTrusted() bool                             { return false }

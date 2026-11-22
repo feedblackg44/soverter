@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"strings"
+	"vidpreset/internal/i18n"
 
 	"gioui.org/font"
 	"gioui.org/io/key"
@@ -113,7 +114,7 @@ func (v *PickerView) Layout(gtx layout.Context, th *theme.Theme) layout.Dimensio
 						layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 							dims := v.search.Layout(gtx, th.Shaper, th.Font(font.Normal), 15, colorCall(gtx, p.Text), colorCall(gtx, p.AccentWash))
 							if v.search.Len() == 0 {
-								th.Text(gtx, 15, font.Normal, p.TextMuted, "Выберите пресет…")
+								th.Text(gtx, 15, font.Normal, p.TextMuted, i18n.T("Выберите пресет…"))
 							}
 							return dims
 						}),
@@ -124,7 +125,7 @@ func (v *PickerView) Layout(gtx layout.Context, th *theme.Theme) layout.Dimensio
 			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 				if len(items) == 0 {
 					return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						return th.Text(gtx, 13, font.Normal, p.TextMuted, "Ничего не найдено")
+						return th.Text(gtx, 13, font.Normal, p.TextMuted, i18n.T("Ничего не найдено"))
 					})
 				}
 				return material_list(gtx, &v.list, len(items), func(gtx layout.Context, i int) layout.Dimensions {
@@ -191,6 +192,6 @@ func OpenPicker(presets []preset.Preset, onPick func(preset.Preset)) *Win {
 		w.Close()
 	}
 	v.OnClose = func() { w.Close() }
-	w = Open("Выберите пресет", 460, 480, v)
+	w = Open(i18n.T("Выберите пресет"), 460, 480, v)
 	return w
 }

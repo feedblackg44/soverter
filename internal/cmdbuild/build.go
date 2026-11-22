@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"vidpreset/internal/i18n"
 
 	"vidpreset/internal/preset"
 )
@@ -209,7 +210,7 @@ func videoFilters(v preset.Video) string {
 func videoArgs(v preset.Video, o Opts) ([]string, error) {
 	enc := EncoderName(v.Codec, v.Encoder)
 	if enc == "" {
-		return nil, fmt.Errorf("нет энкодера для %s/%s", v.Codec, v.Encoder)
+		return nil, fmt.Errorf(i18n.T("нет энкодера для %s/%s"), v.Codec, v.Encoder)
 	}
 	args := []string{"-c:v", enc}
 	q := strconv.Itoa(v.Quality)
@@ -232,9 +233,9 @@ func videoArgs(v preset.Video, o Opts) ([]string, error) {
 			}
 			args = append(args, bitrateArgs(v.Encoder, fmt.Sprintf("%dk", kbps), fmt.Sprintf("%dk", mr))...)
 		case o.Preview:
-			args = append(args, bitrateArgs(v.Encoder, "<рассчитывается при запуске>k", "<…>k")...)
+			args = append(args, bitrateArgs(v.Encoder, i18n.T("<рассчитывается при запуске>k"), "<…>k")...)
 		default:
-			return nil, fmt.Errorf("для режима «по размеру» не рассчитан видеобитрейт")
+			return nil, fmt.Errorf("%s", i18n.T("для режима «по размеру» не рассчитан видеобитрейт"))
 		}
 	}
 	return append(args, speedArgs(v)...), nil

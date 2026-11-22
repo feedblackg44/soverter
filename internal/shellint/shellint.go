@@ -9,6 +9,7 @@ package shellint
 import (
 	"fmt"
 	"strings"
+	"vidpreset/internal/i18n"
 
 	"vidpreset/internal/preset"
 )
@@ -48,7 +49,7 @@ type Entry struct{ Key, Name, Value string }
 
 func planRoot(root, exe string, presets []preset.Preset, mode string) []Entry {
 	q := `"` + exe + `"`
-	es := []Entry{{root, "MUIVerb", "Видео пресеты"}}
+	es := []Entry{{root, "MUIVerb", i18n.T("Видео пресеты")}}
 	if mode == "single" {
 		return append(es, Entry{root + `\command`, "", q + ` pick "%1"`})
 	}

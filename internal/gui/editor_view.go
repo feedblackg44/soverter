@@ -6,6 +6,7 @@ import (
 	"io"
 	"strings"
 	"time"
+	"vidpreset/internal/i18n"
 
 	"gioui.org/font"
 	"gioui.org/io/clipboard"
@@ -71,7 +72,7 @@ func (e *Editor) sidebar(gtx C, th *Th) D {
 				return Vert(gtx, 2,
 					func(gtx C) D { return th.Text(gtx, 20, font.Medium, p.Text, "vidpreset") },
 					func(gtx C) D {
-						return th.Text(gtx, 12, font.Normal, p.TextMuted, "ПКМ по видео → готовый файл")
+						return th.Text(gtx, 12, font.Normal, p.TextMuted, i18n.T("ПКМ по видео → готовый файл"))
 					},
 				)
 			}),
@@ -89,8 +90,8 @@ func (e *Editor) sidebar(gtx C, th *Th) D {
 					e.settingsDialog()
 				}
 				return Vert(gtx, 4,
-					func(gtx C) D { return e.bMenu.Layout(gtx, th, "Меню Windows", Ghost) },
-					func(gtx C) D { return e.bSet.Layout(gtx, th, "Параметры", Ghost) })
+					func(gtx C) D { return e.bMenu.Layout(gtx, th, i18n.T("Меню Windows"), Ghost) },
+					func(gtx C) D { return e.bSet.Layout(gtx, th, i18n.T("Параметры"), Ghost) })
 			}),
 		)
 	})
@@ -113,7 +114,7 @@ func (e *Editor) listToolbar(gtx C, th *Th) D {
 		e.move(1)
 	}
 	return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
-		layout.Flexed(1, func(gtx C) D { return th.Text(gtx, 12, font.Medium, th.P.TextMuted, "ПРЕСЕТЫ") }),
+		layout.Flexed(1, func(gtx C) D { return th.Text(gtx, 12, font.Medium, th.P.TextMuted, i18n.T("ПРЕСЕТЫ")) }),
 		layout.Rigid(func(gtx C) D { return e.bAdd.Layout(gtx, th, IcAdd, false) }),
 		layout.Rigid(func(gtx C) D { return e.bDup.Layout(gtx, th, IcCopy, false) }),
 		layout.Rigid(func(gtx C) D { return e.bUp.Layout(gtx, th, IcUp, false) }),
@@ -124,12 +125,12 @@ func (e *Editor) listToolbar(gtx C, th *Th) D {
 
 func summary(p preset.Preset) string {
 	if !p.Structured() {
-		return "сырые аргументы · ." + p.Suffix + "." + p.Ext
+		return i18n.T("сырые аргументы · .") + p.Suffix + "." + p.Ext
 	}
 	v, _ := p.Normalized()
-	s := labelOf(codecOpts, v.Codec)
+	s := labelOf(codecOpts(), v.Codec)
 	if v.Codec != preset.CodecCopy {
-		s = strings.Fields(s)[0] + " · " + labelOf(familyNames, v.Encoder)
+		s = strings.Fields(s)[0] + " · " + labelOf(familyNames(), v.Encoder)
 	}
 	return s + " · ." + p.Suffix + "." + p.Ext
 }
@@ -140,7 +141,7 @@ func (e *Editor) presetList(gtx C, th *Th) D {
 		e.rows = append(e.rows, presetRow{})
 	}
 	if len(e.cfg.Presets) == 0 {
-		return th.Paragraph(gtx, 13, p.TextMuted, "Пока нет ни одного пресета. Нажмите «+», чтобы создать.")
+		return th.Paragraph(gtx, 13, p.TextMuted, i18n.T("Пока нет ни одного пресета. Нажмите «+», чтобы создать."))
 	}
 	return e.list.List.Layout(gtx, len(e.cfg.Presets), func(gtx C, i int) D {
 		pr := &e.cfg.Presets[i]
@@ -211,7 +212,7 @@ func (e *Editor) topBar(gtx C, th *Th) D {
 	return layout.Inset{Top: 18, Bottom: 14, Left: 24, Right: 24}.Layout(gtx, func(gtx C) D {
 		return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
 			layout.Flexed(1, func(gtx C) D {
-				title := "Нет пресета"
+				title := i18n.T("Нет пресета")
 				if c := e.cur(); c != nil {
 					title = c.Name
 				}
@@ -223,7 +224,7 @@ func (e *Editor) topBar(gtx C, th *Th) D {
 						}
 						return layout.Inset{Left: 12}.Layout(gtx, func(gtx C) D {
 							return boxIn(gtx, withA(p.Warning, 0x22), withA(p.Warning, 0x55), 6, layout.Inset{Top: 2, Bottom: 2, Left: 8, Right: 8}, func(gtx C) D {
-								return th.Text(gtx, 11, font.Medium, p.Warning, "не сохранено")
+								return th.Text(gtx, 11, font.Medium, p.Warning, i18n.T("не сохранено"))
 							})
 						})
 					}),
@@ -235,8 +236,8 @@ func (e *Editor) topBar(gtx C, th *Th) D {
 					g = gtx.Disabled()
 				}
 				return layout.Flex{Alignment: layout.Middle}.Layout(g,
-					layout.Rigid(func(gtx C) D { return e.bImport.Layout(gtx, th, "Импорт", Ghost) }),
-					layout.Rigid(func(gtx C) D { return e.bTest.Layout(gtx, th, "Тест", Ghost) }),
+					layout.Rigid(func(gtx C) D { return e.bImport.Layout(gtx, th, i18n.T("Импорт"), Ghost) }),
+					layout.Rigid(func(gtx C) D { return e.bTest.Layout(gtx, th, i18n.T("Тест"), Ghost) }),
 				)
 			}),
 			layout.Rigid(func(gtx C) D {
@@ -245,9 +246,9 @@ func (e *Editor) topBar(gtx C, th *Th) D {
 					g = gtx.Disabled()
 				}
 				return layout.Flex{Alignment: layout.Middle}.Layout(g,
-					layout.Rigid(func(gtx C) D { return e.bRevert.Layout(gtx, th, "Сбросить", Ghost) }),
+					layout.Rigid(func(gtx C) D { return e.bRevert.Layout(gtx, th, i18n.T("Сбросить"), Ghost) }),
 					layout.Rigid(layout.Spacer{Width: 8}.Layout),
-					layout.Rigid(func(gtx C) D { return e.bSave.Layout(gtx, th, "Сохранить", Primary) }),
+					layout.Rigid(func(gtx C) D { return e.bSave.Layout(gtx, th, i18n.T("Сохранить"), Primary) }),
 				)
 			}),
 		)
@@ -275,7 +276,7 @@ func (e *Editor) content(gtx C, th *Th) D {
 	c := e.cur()
 	if c == nil {
 		return layout.Center.Layout(gtx, func(gtx C) D {
-			return th.Text(gtx, 14, font.Normal, th.P.TextMuted, "Создайте пресет кнопкой «+» слева")
+			return th.Text(gtx, 14, font.Normal, th.P.TextMuted, i18n.T("Создайте пресет кнопкой «+» слева"))
 		})
 	}
 	var items []layout.Widget
@@ -310,18 +311,20 @@ func (e *Editor) content(gtx C, th *Th) D {
 // ---- cards ---------------------------------------------------------------------------------------------------
 
 func (e *Editor) general(gtx C, th *Th, c *preset.Preset) D {
-	return Section(gtx, th, "Основное", "", func(gtx C) D {
+	return Section(gtx, th, i18n.T("Основное"), "", func(gtx C) D {
 		return Vert(gtx, 14,
-			Labeled(th, "Название в меню", func(gtx C) D { return e.fName.Layout(gtx, th, "Как пункт называется в меню") }),
+			Labeled(th, i18n.T("Название в меню"), func(gtx C) D {
+				return e.fName.Layout(gtx, th, i18n.T("Как пункт называется в меню"))
+			}),
 			func(gtx C) D {
 				return layout.Flex{}.Layout(gtx,
-					layout.Flexed(1, Labeled(th, "id", func(gtx C) D { return e.fID.Layout(gtx, th, "a-z, 0-9, дефис") })),
+					layout.Flexed(1, Labeled(th, "id", func(gtx C) D { return e.fID.Layout(gtx, th, i18n.T("a-z, 0-9, дефис")) })),
 					layout.Rigid(layout.Spacer{Width: 12}.Layout),
-					layout.Flexed(1, Labeled(th, "Суффикс (имя.суффикс.ext)", func(gtx C) D { return e.fSuffix.Layout(gtx, th, "fhd") })),
+					layout.Flexed(1, Labeled(th, i18n.T("Суффикс (имя.суффикс.ext)"), func(gtx C) D { return e.fSuffix.Layout(gtx, th, "fhd") })),
 				)
 			},
-			Labeled(th, "Контейнер", func(gtx C) D {
-				opts := extOpts
+			Labeled(th, i18n.T("Контейнер"), func(gtx C) D {
+				opts := extOpts()
 				if labelOf(opts, c.Ext) == "" && c.Ext != "" {
 					opts = append(append([]Opt{}, opts...), Opt{Val: c.Ext, Label: c.Ext})
 				}
@@ -340,16 +343,16 @@ func (e *Editor) rawCard(gtx C, th *Th) D {
 		e.convertLegacy()
 	}
 	e.bConvert.Icon = IcImport
-	return Section(gtx, th, "Сырые аргументы", "", func(gtx C) D {
+	return Section(gtx, th, i18n.T("Сырые аргументы"), "", func(gtx C) D {
 		return Vert(gtx, 14,
 			func(gtx C) D {
-				return Banner(gtx, th, "info", "Это пресет из сырых аргументов ffmpeg (старый формат). Он работает как раньше. Чтобы редактировать его в конструкторе, импортируйте его команду.")
+				return Banner(gtx, th, "info", i18n.T("Это пресет из сырых аргументов ffmpeg (старый формат). Он работает как раньше. Чтобы редактировать его в конструкторе, импортируйте его команду."))
 			},
-			Labeled(th, "Видеофильтр (-vf)", func(gtx C) D { return e.fRawVF.Layout(gtx, th, "например scale=1920:1080,setsar=1") }),
-			Labeled(th, "Аудиофильтр (-af)", func(gtx C) D { return e.fRawAF.Layout(gtx, th, "например volume=-6dB") }),
-			Labeled(th, "Аргументы", func(gtx C) D { return e.fRawArgs.Layout(gtx, th, "-c:v libx264 -crf 18 -c:a copy") }),
+			Labeled(th, i18n.T("Видеофильтр (-vf)"), func(gtx C) D { return e.fRawVF.Layout(gtx, th, i18n.T("например scale=1920:1080,setsar=1")) }),
+			Labeled(th, i18n.T("Аудиофильтр (-af)"), func(gtx C) D { return e.fRawAF.Layout(gtx, th, i18n.T("например volume=-6dB")) }),
+			Labeled(th, i18n.T("Аргументы"), func(gtx C) D { return e.fRawArgs.Layout(gtx, th, "-c:v libx264 -crf 18 -c:a copy") }),
 			func(gtx C) D {
-				return e.bConvert.Layout(gtx, th, "Открыть в конструкторе (через импорт)", Secondary)
+				return e.bConvert.Layout(gtx, th, i18n.T("Открыть в конструкторе (через импорт)"), Secondary)
 			},
 		)
 	})
@@ -358,10 +361,10 @@ func (e *Editor) rawCard(gtx C, th *Th) D {
 func (e *Editor) videoCard(gtx C, th *Th, c *preset.Preset) D {
 	v, _ := c.Normalized()
 	copyV := v.Codec == preset.CodecCopy
-	return Section(gtx, th, "Видео", "", func(gtx C) D {
+	return Section(gtx, th, i18n.T("Видео"), "", func(gtx C) D {
 		items := []layout.Widget{
-			Labeled(th, "Кодек", func(gtx C) D {
-				s, d := e.sCodec.Layout(gtx, th, codecOpts, v.Codec)
+			Labeled(th, i18n.T("Кодек"), func(gtx C) D {
+				s, d := e.sCodec.Layout(gtx, th, codecOpts(), v.Codec)
 				if s != "" {
 					e.editVideo(func(v *preset.Video, _ *preset.Audio) { v.Codec = s })
 				}
@@ -369,13 +372,13 @@ func (e *Editor) videoCard(gtx C, th *Th, c *preset.Preset) D {
 			}),
 		}
 		if copyV {
-			items = append(items, Hint(th, "Видео копируется без перекодирования: быстро и без потерь, но размер и частоту кадров менять нельзя."))
+			items = append(items, Hint(th, i18n.T("Видео копируется без перекодирования: быстро и без потерь, но размер и частоту кадров менять нельзя.")))
 			return Vert(gtx, 14, items...)
 		}
 		items = append(items,
 			func(gtx C) D { return e.encoderRow(gtx, th, v) },
-			Labeled(th, "Режим кодирования", func(gtx C) D {
-				s, d := e.sRate.Layout(gtx, th, rateOpts, v.RateMode)
+			Labeled(th, i18n.T("Режим кодирования"), func(gtx C) D {
+				s, d := e.sRate.Layout(gtx, th, rateOpts(), v.RateMode)
 				if s != "" {
 					e.editVideo(func(v *preset.Video, _ *preset.Audio) { v.RateMode = s })
 				}
@@ -384,15 +387,17 @@ func (e *Editor) videoCard(gtx C, th *Th, c *preset.Preset) D {
 		)
 		switch v.RateMode {
 		case preset.RateBitrate:
-			items = append(items, Labeled(th, "Битрейт, Мбит/с", func(gtx C) D { return e.numField(gtx, th, e.fBitrate, "например 5", "Мбит/с") }))
+			items = append(items, Labeled(th, i18n.T("Битрейт, Мбит/с"), func(gtx C) D {
+				return e.numField(gtx, th, e.fBitrate, i18n.T("например 5"), i18n.T("Мбит/с"))
+			}))
 		case preset.RateSize:
 			items = append(items,
-				Labeled(th, "Целевой размер, МБ", func(gtx C) D { return e.numField(gtx, th, e.fSizeMB, "например 50", "МБ") }),
-				Hint(th, "Битрейт считается при запуске по длительности файла и звуку (с запасом 5%). CPU H.264/H.265 кодируют в два прохода — точнее; аппаратные энкодеры и AV1 — в один, попадание в размер не гарантируется."))
+				Labeled(th, i18n.T("Целевой размер, МБ"), func(gtx C) D { return e.numField(gtx, th, e.fSizeMB, i18n.T("например 50"), i18n.T("МБ")) }),
+				Hint(th, i18n.T("Битрейт считается при запуске по длительности файла и звуку (с запасом 5%). CPU H.264/H.265 кодируют в два прохода — точнее; аппаратные энкодеры и AV1 — в один, попадание в размер не гарантируется.")))
 		default:
-			items = append(items, Labeled(th, "Качество", func(gtx C) D { return e.qualityRow(gtx, th, v) }))
+			items = append(items, Labeled(th, i18n.T("Качество"), func(gtx C) D { return e.qualityRow(gtx, th, v) }))
 		}
-		items = append(items, Labeled(th, "Скорость кодирования", func(gtx C) D { return e.speedRow(gtx, th, v) }))
+		items = append(items, Labeled(th, i18n.T("Скорость кодирования"), func(gtx C) D { return e.speedRow(gtx, th, v) }))
 		return Vert(gtx, 14, items...)
 	})
 }
@@ -413,15 +418,15 @@ func (e *Editor) numField(gtx C, th *Th, f *Field, hint, unit string) D {
 func (e *Editor) encoderRow(gtx C, th *Th, v preset.Video) D {
 	rep, ready := e.encReport()
 	var opts []Opt
-	for _, f := range familyNames {
+	for _, f := range familyNames() {
 		o := Opt{Val: f.Val, Label: f.Label}
 		if ready && !rep.OK(cmdbuild.EncoderName(v.Codec, f.Val)) {
-			o.Label += " (недоступно)"
+			o.Label += i18n.T(" (недоступно)")
 			o.Off = f.Val != v.Encoder
 		}
 		opts = append(opts, o)
 	}
-	return Labeled(th, "Энкодер", func(gtx C) D {
+	return Labeled(th, i18n.T("Энкодер"), func(gtx C) D {
 		return Vert(gtx, 8,
 			func(gtx C) D {
 				s, d := e.sEnc.Layout(gtx, th, opts, v.Encoder)
@@ -446,22 +451,26 @@ func (e *Editor) qualityRow(gtx C, th *Th, v preset.Video) D {
 		},
 		func(gtx C) D {
 			return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
-				layout.Rigid(func(gtx C) D { return th.Text(gtx, 12, font.Normal, p.TextMuted, "← лучше качество") }),
+				layout.Rigid(func(gtx C) D {
+					return th.Text(gtx, 12, font.Normal, p.TextMuted, i18n.T("← лучше качество"))
+				}),
 				layout.Flexed(1, func(gtx C) D {
 					return layout.Center.Layout(gtx, func(gtx C) D {
 						return th.Text(gtx, 14, font.Medium, p.Accent, fmt.Sprintf("%d", v.Quality))
 					})
 				}),
-				layout.Rigid(func(gtx C) D { return th.Text(gtx, 12, font.Normal, p.TextMuted, "меньше размер →") }),
+				layout.Rigid(func(gtx C) D {
+					return th.Text(gtx, 12, font.Normal, p.TextMuted, i18n.T("меньше размер →"))
+				}),
 			)
 		},
 	)
 }
 
 func (e *Editor) speedRow(gtx C, th *Th, v preset.Video) D {
-	opts := speedOpts
+	opts := speedOpts()
 	if labelOf(opts, v.Speed) == "" && v.Speed != "" {
-		opts = append(append([]Opt{}, opts...), Opt{Val: v.Speed, Label: v.Speed + " (из импорта)"})
+		opts = append(append([]Opt{}, opts...), Opt{Val: v.Speed, Label: v.Speed + i18n.T(" (из импорта)")})
 	}
 	return Vert(gtx, 6,
 		func(gtx C) D {
@@ -486,13 +495,13 @@ func (e *Editor) speedRow(gtx C, th *Th, v preset.Video) D {
 
 func (e *Editor) sizeCard(gtx C, th *Th, c *preset.Preset) D {
 	v, _ := c.Normalized()
-	return Section(gtx, th, "Размер кадра и fps", "Масштабирование выполняется на CPU", func(gtx C) D {
+	return Section(gtx, th, i18n.T("Размер кадра и fps"), i18n.T("Масштабирование выполняется на CPU"), func(gtx C) D {
 		if v.Codec == preset.CodecCopy {
-			return Hint(th, "Без перекодирования размер и частоту кадров менять нельзя.")(gtx)
+			return Hint(th, i18n.T("Без перекодирования размер и частоту кадров менять нельзя."))(gtx)
 		}
 		key := sizeKeyFor(v)
 		items := []layout.Widget{
-			Labeled(th, "Размер", func(gtx C) D {
+			Labeled(th, i18n.T("Размер"), func(gtx C) D {
 				s, d := e.sSize.Layout(gtx, th, sizeOpts(), key)
 				if s != "" {
 					e.pickSize(s)
@@ -501,8 +510,8 @@ func (e *Editor) sizeCard(gtx C, th *Th, c *preset.Preset) D {
 			}),
 		}
 		if key != sizeNone {
-			items = append(items, Labeled(th, "Как масштабировать", func(gtx C) D {
-				s, d := e.sScale.Layout(gtx, th, scaleModeOpts, v.ScaleMode)
+			items = append(items, Labeled(th, i18n.T("Как масштабировать"), func(gtx C) D {
+				s, d := e.sScale.Layout(gtx, th, scaleModeOpts(), v.ScaleMode)
 				if s != "" {
 					e.editVideo(func(v *preset.Video, _ *preset.Audio) { v.ScaleMode = s })
 				}
@@ -512,17 +521,17 @@ func (e *Editor) sizeCard(gtx C, th *Th, c *preset.Preset) D {
 		if key == sizeCustom {
 			items = append(items, func(gtx C) D {
 				return layout.Flex{}.Layout(gtx,
-					layout.Flexed(1, Labeled(th, "Ширина", func(gtx C) D { return e.fW.Layout(gtx, th, "px") })),
+					layout.Flexed(1, Labeled(th, i18n.T("Ширина"), func(gtx C) D { return e.fW.Layout(gtx, th, "px") })),
 					layout.Rigid(layout.Spacer{Width: 12}.Layout),
-					layout.Flexed(1, Labeled(th, "Высота", func(gtx C) D { return e.fH.Layout(gtx, th, "px") })),
+					layout.Flexed(1, Labeled(th, i18n.T("Высота"), func(gtx C) D { return e.fH.Layout(gtx, th, "px") })),
 				)
 			})
 			if v.ScaleMode == preset.ScaleKeep {
-				items = append(items, Hint(th, "При сохранении пропорций важна только высота: ширина считается сама."))
+				items = append(items, Hint(th, i18n.T("При сохранении пропорций важна только высота: ширина считается сама.")))
 			}
 		}
-		items = append(items, Labeled(th, "Частота кадров, fps", func(gtx C) D {
-			opts := fpsOpts
+		items = append(items, Labeled(th, i18n.T("Частота кадров, fps"), func(gtx C) D {
+			opts := fpsOpts()
 			sel := numOrEmpty(v.FPS)
 			if labelOf(opts, sel) == "" {
 				opts = append(append([]Opt{}, opts...), Opt{Val: sel, Label: sel})
@@ -538,7 +547,7 @@ func (e *Editor) sizeCard(gtx C, th *Th, c *preset.Preset) D {
 					return d
 				},
 				func(gtx C) D {
-					return e.numField(gtx, th, e.fFPS, "другое значение", "fps")
+					return e.numField(gtx, th, e.fFPS, i18n.T("другое значение"), "fps")
 				})
 		}))
 		return Vert(gtx, 14, items...)
@@ -560,7 +569,7 @@ func (e *Editor) pickSize(key string) {
 		if key == sizeCustom {
 			return
 		}
-		for _, s := range sizePresets {
+		for _, s := range sizePresets() {
 			if s.val == key {
 				v.Width, v.Height = s.w, s.h
 			}
@@ -573,10 +582,10 @@ func (e *Editor) pickSize(key string) {
 
 func (e *Editor) audioCard(gtx C, th *Th, c *preset.Preset) D {
 	_, a := c.Normalized()
-	return Section(gtx, th, "Звук", "", func(gtx C) D {
+	return Section(gtx, th, i18n.T("Звук"), "", func(gtx C) D {
 		items := []layout.Widget{
-			Labeled(th, "Обработка звука", func(gtx C) D {
-				s, d := e.sAMode.Layout(gtx, th, audioOpts, a.Mode)
+			Labeled(th, i18n.T("Обработка звука"), func(gtx C) D {
+				s, d := e.sAMode.Layout(gtx, th, audioOpts(), a.Mode)
 				if s != "" {
 					e.editVideo(func(_ *preset.Video, a *preset.Audio) { a.Mode = s })
 				}
@@ -584,8 +593,8 @@ func (e *Editor) audioCard(gtx C, th *Th, c *preset.Preset) D {
 			}),
 		}
 		if a.Mode == preset.AudioAAC || a.Mode == preset.AudioOpus {
-			items = append(items, Labeled(th, "Битрейт звука", func(gtx C) D {
-				opts := audioBitrates
+			items = append(items, Labeled(th, i18n.T("Битрейт звука"), func(gtx C) D {
+				opts := audioBitrates()
 				if labelOf(opts, a.Bitrate) == "" && a.Bitrate != "" {
 					opts = append(append([]Opt{}, opts...), Opt{Val: a.Bitrate, Label: a.Bitrate})
 				}
@@ -597,22 +606,22 @@ func (e *Editor) audioCard(gtx C, th *Th, c *preset.Preset) D {
 			}))
 		}
 		if a.Mode != preset.AudioRemove {
-			items = append(items, Labeled(th, "Громкость, дБ (0 = не менять)", func(gtx C) D { return e.numField(gtx, th, e.fVol, "например -6", "дБ") }))
+			items = append(items, Labeled(th, i18n.T("Громкость, дБ (0 = не менять)"), func(gtx C) D { return e.numField(gtx, th, e.fVol, i18n.T("например -6"), i18n.T("дБ")) }))
 		}
 		switch {
 		case a.VolumeDB != 0 && a.Mode != preset.AudioRemove:
-			items = append(items, Hint(th, "Изменение громкости требует перекодирования звука, поэтому звук не копируется как есть."))
+			items = append(items, Hint(th, i18n.T("Изменение громкости требует перекодирования звука, поэтому звук не копируется как есть.")))
 		}
 		return Vert(gtx, 14, items...)
 	})
 }
 
 func (e *Editor) extraCard(gtx C, th *Th) D {
-	return Section(gtx, th, "Дополнительно", "Всё, чего нет в форме. Идёт в конец команды, перед выходным файлом.", func(gtx C) D {
+	return Section(gtx, th, i18n.T("Дополнительно"), i18n.T("Всё, чего нет в форме. Идёт в конец команды, перед выходным файлом."), func(gtx C) D {
 		return Vert(gtx, 14,
-			Labeled(th, "Видеофильтры (-vf)", func(gtx C) D { return e.fVF.Layout(gtx, th, "например hqdn3d") }),
-			Labeled(th, "Аудиофильтры (-af)", func(gtx C) D { return e.fAF.Layout(gtx, th, "") }),
-			Labeled(th, "Дополнительные аргументы", func(gtx C) D { return e.fArgs.Layout(gtx, th, "например -movflags +faststart") }),
+			Labeled(th, i18n.T("Видеофильтры (-vf)"), func(gtx C) D { return e.fVF.Layout(gtx, th, i18n.T("например hqdn3d")) }),
+			Labeled(th, i18n.T("Аудиофильтры (-af)"), func(gtx C) D { return e.fAF.Layout(gtx, th, "") }),
+			Labeled(th, i18n.T("Дополнительные аргументы"), func(gtx C) D { return e.fArgs.Layout(gtx, th, i18n.T("например -movflags +faststart")) }),
 		)
 	})
 }
@@ -637,23 +646,23 @@ func (e *Editor) previewCard(gtx C, th *Th) D {
 	e.bCopy.Icon = IcCopy
 	if e.bCopy.Clicked(gtx) && e.previewText != "" {
 		gtx.Execute(clipboard.WriteCmd{Type: "application/text", Data: io.NopCloser(strings.NewReader(e.previewText))})
-		e.setToast("Команда скопирована")
+		e.setToast(i18n.T("Команда скопирована"))
 	}
 	p := th.P
-	return Section(gtx, th, "Итоговая команда", "Обновляется по мере правок", func(gtx C) D {
+	return Section(gtx, th, i18n.T("Итоговая команда"), i18n.T("Обновляется по мере правок"), func(gtx C) D {
 		return Vert(gtx, 12,
 			func(gtx C) D {
 				return boxIn(gtx, p.Bg, p.Border, 10, layout.UniformInset(12), func(gtx C) D {
 					gtx.Constraints.Min.X = gtx.Constraints.Max.X
 					if e.previewText == "" {
-						return th.Paragraph(gtx, 13, p.TextMuted, "Команду собрать нельзя: исправьте ошибки выше.")
+						return th.Paragraph(gtx, 13, p.TextMuted, i18n.T("Команду собрать нельзя: исправьте ошибки выше."))
 					}
 					return th.Code(gtx, 13, p.Text, e.previewText)
 				})
 			},
 			func(gtx C) D {
 				return layout.Flex{Spacing: layout.SpaceStart}.Layout(gtx,
-					layout.Rigid(func(gtx C) D { return e.bCopy.Layout(gtx, th, "Копировать", Secondary) }))
+					layout.Rigid(func(gtx C) D { return e.bCopy.Layout(gtx, th, i18n.T("Копировать"), Secondary) }))
 			},
 		)
 	})
