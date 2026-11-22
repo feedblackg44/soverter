@@ -153,8 +153,9 @@ func init() {
 		"Не используется (ffmpeg, входной и выходной файлы, служебные флаги):": "Not used (ffmpeg, input and output files, service flags):",
 
 		// ---- settings / menu dialogs ----
-		"Язык":               "Language",
-		"Масштаб интерфейса": "Interface scale",
+		"Язык":                "Language",
+		"Настройки сохранены": "Settings saved",
+		"Масштаб интерфейса":  "Interface scale",
 		"Ctrl + / Ctrl − / Ctrl 0 в любом окне меняют масштаб.": "Ctrl + / Ctrl − / Ctrl 0 change the scale in any window.",
 		"Интеграция с Explorer":                                 "Explorer integration",
 		"Меню Windows 11":                                       "Windows 11 menu",

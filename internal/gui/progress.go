@@ -3,7 +3,6 @@ package gui
 import (
 	"fmt"
 	"io"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -67,8 +66,6 @@ func fmtDur(d time.Duration) string {
 	return fmt.Sprintf("%02d:%02d:%02d", int(d.Hours()), int(d.Minutes())%60, int(d.Seconds())%60)
 }
 
-func showInFolder(path string) { _ = exec.Command("explorer", "/select,"+path).Start() }
-
 // Layout draws the queue.
 func (p *ProgressView) Layout(gtx layout.Context, th *theme.Theme) layout.Dimensions {
 	items := p.q.Snapshot()
@@ -109,7 +106,7 @@ func (p *ProgressView) Layout(gtx layout.Context, th *theme.Theme) layout.Dimens
 			row.State, row.Info = "done", i18n.T("Готово")
 			row.Action, row.ActionLabel = &p.acts[i], i18n.T("Показать в папке")
 			if p.acts[i].Clicked(gtx) {
-				showInFolder(it.Output)
+				ShowInFolder(it.Output)
 			}
 		case runner.Canceled:
 			row.State, row.Info = "canceled", i18n.T("Отменено")

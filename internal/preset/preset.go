@@ -195,9 +195,9 @@ func Defaults() *Config {
 	return &Config{
 		Settings: Settings{MenuMode: "submenu", Integration: "modern"},
 		Presets: []Preset{
-			{ID: "stretch-fhd", Name: "4:3 → 16:9 (FHD)", Suffix: "fhd", Ext: "mp4", Video: v(CodecH264, 18, "medium", ScaleStretch, 1920, 1080, 0), Audio: copyAudio},
-			{ID: "stretch-qhd", Name: "4:3 → 16:9 (QHD)", Suffix: "qhd", Ext: "mp4", Video: v(CodecH264, 18, "medium", ScaleStretch, 2560, 1440, 0), Audio: copyAudio},
-			{ID: "volume-down", Name: i18n.T("Громкость −6 дБ"), Suffix: "vol", Ext: "same", Video: &Video{Codec: CodecCopy}, Audio: &Audio{Mode: AudioAAC, Bitrate: "192k", VolumeDB: -6}},
+			{ID: "stretch-fhd", Name: "4:3 → 16:9 (FHD)", Suffix: "stretch-1080p", Ext: "mp4", Video: v(CodecH264, 18, "medium", ScaleStretch, 1920, 1080, 0), Audio: copyAudio},
+			{ID: "stretch-qhd", Name: "4:3 → 16:9 (QHD)", Suffix: "stretch-1440p", Ext: "mp4", Video: v(CodecH264, 18, "medium", ScaleStretch, 2560, 1440, 0), Audio: copyAudio},
+			{ID: "volume-down", Name: i18n.T("Громкость −6 дБ"), Suffix: "volume-6db", Ext: "same", Video: &Video{Codec: CodecCopy}, Audio: &Audio{Mode: AudioAAC, Bitrate: "192k", VolumeDB: -6}},
 			{ID: "fps-30", Name: "30 fps", Suffix: "30fps", Ext: "mp4", Video: v(CodecH264, 18, "medium", ScaleNone, 0, 0, 30), Audio: copyAudio},
 			{ID: "scale-720p", Name: i18n.T("Разрешение 720p"), Suffix: "720p", Ext: "mp4", Video: v(CodecH264, 20, "medium", ScaleKeep, 0, 720, 0), Audio: copyAudio},
 			{ID: "h265", Name: i18n.T("Перекодировать в H.265"), Suffix: "h265", Ext: "mp4", Video: v(CodecH265, 24, "medium", ScaleNone, 0, 0, 0), Audio: copyAudio},

@@ -35,7 +35,7 @@ func TestRunReal(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if filepath.Base(out) != "тест файл.fhd.mp4" {
+	if filepath.Base(out) != "тест файл.stretch-1080p.mp4" {
 		t.Fatalf("name %s", out)
 	}
 	if !last.Done {
@@ -52,7 +52,7 @@ func TestRunReal(t *testing.T) {
 	}
 	// second run must not overwrite
 	out2, err := tools.Run(context.Background(), p, src, nil)
-	if err != nil || filepath.Base(out2) != "тест файл.fhd-1.mp4" {
+	if err != nil || filepath.Base(out2) != "тест файл.stretch-1080p-1.mp4" {
 		t.Fatalf("collision: %s %v", out2, err)
 	}
 	if d := tools.Duration(context.Background(), src); d < time.Second {

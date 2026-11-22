@@ -840,7 +840,8 @@ func (e *Editor) settingsDialog() {
 				Labeled(th, i18n.T("Путь к ffmpeg"), func(gtx C) D { return st.ffmpeg.Layout(gtx, th, i18n.T("пусто = искать в PATH")) }),
 				func(gtx C) D {
 					if st.bRecheck.Clicked(gtx) {
-						e.cfg.Settings.FFmpegPath = strings.TrimSpace(st.ffmpeg.Text())
+						path := strings.TrimSpace(st.ffmpeg.Text())
+						_ = e.persistUI(func(s *preset.Settings) { s.FFmpegPath = path })
 						e.startProbe(true)
 						e.setToast(i18n.T("Энкодеры перепроверяются…"))
 					}
@@ -851,12 +852,7 @@ func (e *Editor) settingsDialog() {
 		Actions: []*DAction{
 			{Label: i18n.T("Отмена"), Kind: Ghost, Do: e.closeDlg},
 			{Label: i18n.T("Готово"), Kind: Primary, Do: func() {
-				e.cfg.Settings.Integration, e.cfg.Settings.MenuMode = st.integration, st.mode
-				e.cfg.Settings.AutoClose = st.autoClose.Value
-				e.cfg.Settings.FFmpegPath = strings.TrimSpace(st.ffmpeg.Text())
-				e.recomputeDirty()
-				e.startProbe(false)
-				e.closeDlg()
+				e.applySettings(st)
 			}},
 		},
 	}
@@ -926,21 +922,22 @@ func scaleOpts() []Opt {
 }
 
 // persistUI saves the language/scale to presets.toml right away without touching unsaved preset edits.
-func (e *Editor) persistUI(mut func(*preset.Settings)) {
+func (e *Editor) persistUI(mut func(*preset.Settings)) error {
 	mut(&e.cfg.Settings)
 	if e.path == "" {
-		return
+		return nil
 	}
 	disk, err := preset.Load(e.path)
 	if err != nil {
-		return // never overwrite a config we cannot read
+		return err // never overwrite a config we cannot read
 	}
 	mut(&disk.Settings)
 	if err := preset.Save(e.path, disk); err != nil {
-		return
+		return err
 	}
 	e.saved, _ = preset.Encode(disk)
 	e.recomputeDirty()
+	return nil
 }
 
 func (e *Editor) setLanguage(lang string) {
@@ -956,4 +953,35 @@ func (e *Editor) setScale(p int) {
 	}
 	SetScale(p)
 	e.persistUI(func(s *preset.Settings) { s.UIScale = p })
+}
+
+// applySettings is the «Готово» button of the settings dialog: the settings are written to presets.toml right
+// away (unsaved preset edits are left alone) and the menu is re-registered if its kind or layout changed.
+func (e *Editor) applySettings(st *settingsState) {
+	cur := e.cfg.Settings
+	curInt, curMode := cur.Integration, cur.MenuMode
+	if curInt != "classic" {
+		curInt = "modern"
+	}
+	if curMode != "single" {
+		curMode = "submenu"
+	}
+	menuChanged := curInt != st.integration || curMode != st.mode
+	path := strings.TrimSpace(st.ffmpeg.Text())
+	err := e.persistUI(func(s *preset.Settings) {
+		s.Integration, s.MenuMode = st.integration, st.mode
+		s.AutoClose = st.autoClose.Value
+		s.FFmpegPath = path
+	})
+	e.closeDlg()
+	if err != nil {
+		e.info(i18n.T("Не удалось сохранить"), err.Error(), true)
+		return
+	}
+	e.startProbe(false)
+	if menuChanged {
+		e.installMenu() // re-register the menu in the new kind/layout (may ask for UAC)
+		return
+	}
+	e.setToast(i18n.T("Настройки сохранены"))
 }

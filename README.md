@@ -95,7 +95,7 @@ go build -ldflags "-H=windowsgui" -o vidpreset.exe ./cmd/vidpreset
 [[preset]]
 id = "stretch-fhd"
 name = "4:3 → 16:9 (FHD)"
-suffix = "fhd"
+suffix = "stretch-1080p"
 ext = "mp4"                # same = расширение источника
 [preset.video]
 codec = "h264"             # copy | h264 | h265 | av1

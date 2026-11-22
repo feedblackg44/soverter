@@ -1,6 +1,8 @@
 package gui
 
 import (
+	"os/exec"
+	"path/filepath"
 	"syscall"
 	wutf16 "unicode/utf16"
 	"unsafe"
@@ -66,4 +68,15 @@ func PickVideoFile(title string) (path string, ok bool) {
 // utf16 converts s to UTF-16 keeping embedded NULs (needed for double-NUL filter strings).
 func utf16(s string) []uint16 {
 	return append(wutf16.Encode([]rune(s)), 0)
+}
+
+// ShowInFolder opens Explorer with the file selected. The command line is built by hand: Go would quote the
+// whole "/select,path" argument, which Explorer does not understand (it then just opens its default folder).
+func ShowInFolder(path string) {
+	if abs, err := filepath.Abs(path); err == nil {
+		path = abs
+	}
+	cmd := exec.Command("explorer.exe")
+	cmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: `explorer.exe /select,"` + path + `"`}
+	_ = cmd.Start()
 }
