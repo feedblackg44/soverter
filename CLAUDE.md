@@ -68,4 +68,4 @@ go run ./cmd/guidemo -shot <папка>                                    # р�
 
 ## Git
 
-Репозиторий локальный. Основная ветка `main`; работа над новым дизайном (Gio, локализация, масштаб, перетаскивание) идёт в ветке `redesign-gio` и в `main` ещё не слита, слияние только по просьбе владельца. Коммит на логический этап, сообщения на английском, в конце строка `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`. Бинарники (`vidpreset.exe`) и `shellext/build/` в `.gitignore`; собранные `vidpreset.msix`/`.cer` в `internal/shellext/assets` коммитятся (вшиваются через go:embed).
+Репозиторий локальный. Основная ветка `main`. Новый дизайн (Gio, локализация, масштаб, перетаскивание) слит в `main` fast-forward; ветка `redesign-gio` осталась как закладка и больше не нужна. Коммит на логический этап, сообщения на английском, в конце строка `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`. Бинарники (`vidpreset.exe`) и `shellext/build/` в `.gitignore`; собранные `vidpreset.msix`/`.cer` в `internal/shellext/assets` коммитятся (вшиваются через go:embed).
