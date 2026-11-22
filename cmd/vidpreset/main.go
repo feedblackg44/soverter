@@ -87,6 +87,7 @@ func (s *session) ensure() error {
 	if err != nil {
 		return err
 	}
+	tools.Unavailable = hardwareCheck(tools.FFmpeg)
 	s.prog = ui.NewProgress(s.app, tools, s.cfg.Settings.AutoClose, func() { s.prog = nil })
 	return nil
 }

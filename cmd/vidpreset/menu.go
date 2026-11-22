@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"vidpreset/internal/encoders"
 	"vidpreset/internal/preset"
 	"vidpreset/internal/shellext"
 	"vidpreset/internal/shellint"
@@ -37,3 +40,18 @@ func uninstallMenu() error {
 }
 
 func menuInstalled() bool { return shellext.Registered() || shellint.Installed() }
+
+// hardwareCheck returns a runner hook that explains why a hardware encoder cannot run on this machine.
+// It uses the cached trial-encode report (computed once, then read from disk), so software presets stay instant.
+func hardwareCheck(ffmpeg string) func(string) string {
+	return func(name string) string {
+		if !strings.HasSuffix(name, "_nvenc") && !strings.HasSuffix(name, "_amf") && !strings.HasSuffix(name, "_qsv") {
+			return ""
+		}
+		rep, err := encoders.Probe(context.Background(), ffmpeg, false)
+		if err != nil {
+			return ""
+		}
+		return rep.Why(name)
+	}
+}

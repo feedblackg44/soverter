@@ -95,7 +95,12 @@ func ETA(total time.Duration, p Progress) (time.Duration, bool) {
 }
 
 // Tools locates ffmpeg/ffprobe.
-type Tools struct{ FFmpeg, FFprobe string }
+type Tools struct {
+	FFmpeg, FFprobe string
+	// Unavailable, if set, returns a user-facing reason when an encoder is in the build but cannot run
+	// on this machine (hardware encoders without a GPU), or "" when it is fine.
+	Unavailable func(encoder string) string
+}
 
 func FindTools(manual string) (Tools, error) {
 	ff := manual
@@ -203,6 +208,11 @@ func (t Tools) CheckEncoders(p preset.Preset) error {
 	for _, e := range needed {
 		if !t.HasEncoder(e) {
 			return fmt.Errorf("в вашей сборке ffmpeg нет энкодера %q (нужен пресету «%s»).\nУстановите полную сборку: winget install Gyan.FFmpeg", e, p.Name)
+		}
+		if t.Unavailable != nil {
+			if why := t.Unavailable(e); why != "" {
+				return fmt.Errorf("энкодер %s недоступен на этой машине (нужен пресету «%s»): %s.\nВыберите другой энкодер в редакторе пресета.", e, p.Name, why)
+			}
 		}
 	}
 	return nil

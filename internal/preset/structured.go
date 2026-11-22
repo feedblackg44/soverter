@@ -15,23 +15,23 @@ import (
 //	af    extra audio filters, appended to the generated -af chain
 //	args  extra raw ffmpeg arguments, placed at the end before the output file
 type Video struct {
-	Codec        string  `toml:"codec"`                    // copy | h264 | h265 | av1
-	Encoder      string  `toml:"encoder,omitempty"`        // cpu (default) | nvenc | amf | qsv
-	RateMode     string  `toml:"rate_mode,omitempty"`      // quality (default) | bitrate | size
-	Quality      int     `toml:"quality,omitempty"`        // unified scale, lower = better (CRF-like), rate_mode=quality
-	VideoBitrate float64 `toml:"video_bitrate,omitempty"`  // Mbit/s, rate_mode=bitrate
-	TargetSizeMB float64 `toml:"target_size_mb,omitempty"` // MB, rate_mode=size
-	Speed        string  `toml:"speed,omitempty"`          // fastest | fast | medium | slow | slowest (or a raw encoder preset)
-	ScaleMode    string  `toml:"scale_mode,omitempty"`     // none (default) | keep | stretch | fit
-	Width        int     `toml:"width,omitempty"`
-	Height       int     `toml:"height,omitempty"`
-	FPS          float64 `toml:"fps,omitempty"` // 0 = unchanged
+	Codec        string  `toml:"codec"`                             // copy | h264 | h265 | av1
+	Encoder      string  `toml:"encoder,omitempty"`                 // cpu (default) | nvenc | amf | qsv
+	RateMode     string  `toml:"rate_mode,omitempty"`               // quality (default) | bitrate | size
+	Quality      int     `toml:"quality,omitempty,omitzero"`        // unified scale, lower = better (CRF-like), rate_mode=quality
+	VideoBitrate float64 `toml:"video_bitrate,omitempty,omitzero"`  // Mbit/s, rate_mode=bitrate
+	TargetSizeMB float64 `toml:"target_size_mb,omitempty,omitzero"` // MB, rate_mode=size
+	Speed        string  `toml:"speed,omitempty"`                   // fastest | fast | medium | slow | slowest (or a raw encoder preset)
+	ScaleMode    string  `toml:"scale_mode,omitempty"`              // none (default) | keep | stretch | fit
+	Width        int     `toml:"width,omitempty,omitzero"`
+	Height       int     `toml:"height,omitempty,omitzero"`
+	FPS          float64 `toml:"fps,omitempty,omitzero"` // 0 = unchanged
 }
 
 type Audio struct {
-	Mode     string  `toml:"mode"`                // copy | aac | opus | remove
-	Bitrate  string  `toml:"bitrate,omitempty"`   // for aac / opus, e.g. "192k"
-	VolumeDB float64 `toml:"volume_db,omitempty"` // != 0 requires re-encoding
+	Mode     string  `toml:"mode"`                         // copy | aac | opus | remove
+	Bitrate  string  `toml:"bitrate,omitempty"`            // for aac / opus, e.g. "192k"
+	VolumeDB float64 `toml:"volume_db,omitempty,omitzero"` // != 0 requires re-encoding
 }
 
 const (

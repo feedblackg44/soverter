@@ -94,3 +94,24 @@ func Validate(p preset.Preset) []Issue {
 	}
 	return is
 }
+
+// Availability tells whether an encoder works on this machine (implemented by encoders.Report).
+type Availability interface {
+	OK(name string) bool
+	Why(name string) string
+}
+
+// CheckAvailability returns warnings for encoders the preset needs but this machine cannot run.
+// A preset with an unavailable encoder still opens and saves; it just cannot run until another is chosen.
+func CheckAvailability(p preset.Preset, av Availability) []Issue {
+	var is []Issue
+	if av == nil {
+		return nil
+	}
+	for _, n := range Encoders(p) {
+		if !av.OK(n) {
+			is = append(is, Issue{Warning, "Энкодер " + n + " недоступен на этой машине: " + av.Why(n) + ". Выберите другой энкодер, иначе пресет не запустится."})
+		}
+	}
+	return is
+}

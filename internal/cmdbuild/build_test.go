@@ -352,3 +352,23 @@ func TestTwoPassKeepsExtrasInBothPasses(t *testing.T) {
 	p2, _ := Args(p, "in.mp4", "out.mp4", Opts{VideoKbps: 900, Pass: 2, PassLog: "L"})
 	eq(t, p2[4:], "-c:v libx265 -b:v 900k -tag:v hvc1 -pass 2 -passlogfile L -c:a copy -tune grain out.mp4")
 }
+
+type fakeAvail map[string]string // encoder -> reason ("" = available)
+
+func (f fakeAvail) OK(n string) bool    { return f[n] == "" }
+func (f fakeAvail) Why(n string) string { return f[n] }
+
+func TestCheckAvailability(t *testing.T) {
+	p := vid(preset.Video{Codec: "h265", Encoder: "amf", Quality: 22})
+	p.Audio = &preset.Audio{Mode: "aac"}
+	got := CheckAvailability(p, fakeAvail{"hevc_amf": "нет видеокарты AMD"})
+	if len(got) != 1 || got[0].Severity != Warning || !strings.Contains(got[0].Msg, "hevc_amf") || !strings.Contains(got[0].Msg, "нет видеокарты AMD") {
+		t.Fatalf("%+v", got)
+	}
+	if len(CheckAvailability(p, fakeAvail{})) != 0 || CheckAvailability(p, nil) != nil {
+		t.Fatal("available encoder or unknown report must give no issues")
+	}
+	if len(CheckAvailability(preset.Preset{VF: "x"}, fakeAvail{"hevc_amf": "x"})) != 0 {
+		t.Fatal("legacy presets are not checked")
+	}
+}

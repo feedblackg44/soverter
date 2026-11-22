@@ -169,3 +169,20 @@ func TestStructuredValidation(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestStructuredTOMLHasNoZeroNoise(t *testing.T) {
+	data, err := Encode(Defaults())
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := string(data)
+	for _, noise := range []string{"video_bitrate", "target_size_mb", "fps = 0", "volume_db = 0", "width = 0"} {
+		if strings.Contains(s, noise) && noise != "fps = 0" {
+			// fps-30 sets fps = 30; only zero values count as noise
+			t.Errorf("zero field %q written to TOML", noise)
+		}
+	}
+	if strings.Contains(s, "fps = 0.0") || strings.Contains(s, "fps = 0\n") {
+		t.Error("fps = 0 written")
+	}
+}
