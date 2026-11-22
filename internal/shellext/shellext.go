@@ -77,3 +77,7 @@ func MenuFile(exe string, presets []preset.Preset, mode, title string) []byte {
 	}
 	return []byte(b.String())
 }
+
+// Available reports whether this build contains the Windows 11 menu package. The package is not committed to
+// git: it is produced by shellext/package.ps1 before `go build` (see release.ps1).
+func Available() bool { return len(msixBytes()) > 0 }

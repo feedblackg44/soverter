@@ -1,3 +1,6 @@
 vidpreset.exe
 *.test
 shellext/build/
+internal/shellext/assets/vidpreset.msix
+internal/shellext/assets/vidpreset.cer
+dist/
