@@ -31,7 +31,7 @@ func TestCatalogComplete(t *testing.T) {
 				return true
 			}
 			sel, ok := c.Fun.(*ast.SelectorExpr)
-			if !ok || (sel.Sel.Name != "T" && sel.Sel.Name != "Err") {
+			if !ok || (sel.Sel.Name != "T" && sel.Sel.Name != "Err" && sel.Sel.Name != "N") {
 				return true
 			}
 			if id, ok := sel.X.(*ast.Ident); !ok || id.Name != "i18n" {

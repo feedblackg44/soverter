@@ -27,6 +27,7 @@ func (e *Editor) setToast(s string) {
 
 // Layout draws the whole editor window.
 func (e *Editor) Layout(gtx C, th *Th) D {
+	e.listInput(gtx)
 	if e.loaded != e.sel || e.loaded == -2 {
 		if e.sel >= len(e.cfg.Presets) {
 			e.sel = len(e.cfg.Presets) - 1
@@ -133,54 +134,6 @@ func summary(p preset.Preset) string {
 		s = strings.Fields(s)[0] + " · " + labelOf(familyNames(), v.Encoder)
 	}
 	return s + " · ." + p.Suffix + "." + p.Ext
-}
-
-func (e *Editor) presetList(gtx C, th *Th) D {
-	p := th.P
-	for len(e.rows) < len(e.cfg.Presets) {
-		e.rows = append(e.rows, presetRow{})
-	}
-	if len(e.cfg.Presets) == 0 {
-		return th.Paragraph(gtx, 13, p.TextMuted, i18n.T("Пока нет ни одного пресета. Нажмите «+», чтобы создать."))
-	}
-	return e.list.List.Layout(gtx, len(e.cfg.Presets), func(gtx C, i int) D {
-		pr := &e.cfg.Presets[i]
-		row := &e.rows[i]
-		if row.click.Clicked(gtx) && e.sel != i {
-			e.selectPreset(i)
-		}
-		if row.on.Update(gtx) {
-			pr.Disabled = !row.on.Value
-			e.recomputeDirty()
-		}
-		row.on.Value = !pr.Disabled
-		return layout.Inset{Bottom: 4}.Layout(gtx, func(gtx C) D {
-			return row.click.Layout(gtx, func(gtx C) D {
-				bg, border := theme0(p.Surface), theme0(p.Surface)
-				switch {
-				case i == e.sel:
-					bg, border = p.AccentWash, withA(p.Accent, 0x70)
-				case row.click.Hovered():
-					bg = p.Surface
-				}
-				nameC, subC := p.Text, p.TextMuted
-				if pr.Disabled {
-					nameC, subC = p.TextMuted, withA(p.TextMuted, 0xA0)
-				}
-				return boxIn(gtx, bg, border, 10, layout.Inset{Top: 9, Bottom: 9, Left: 12, Right: 10}, func(gtx C) D {
-					gtx.Constraints.Min.X = gtx.Constraints.Max.X
-					return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
-						layout.Flexed(1, func(gtx C) D {
-							return Vert(gtx, 2,
-								func(gtx C) D { return th.Text(gtx, 14, font.Medium, nameC, pr.Name) },
-								func(gtx C) D { return th.Text(gtx, 11, font.Normal, subC, summary(*pr)) })
-						}),
-						layout.Rigid(func(gtx C) D { return row.on.Layout(gtx, th) }),
-					)
-				})
-			})
-		})
-	})
 }
 
 // ---- main area -----------------------------------------------------------------------------------------------
@@ -500,6 +453,9 @@ func (e *Editor) sizeCard(gtx C, th *Th, c *preset.Preset) D {
 			return Hint(th, i18n.T("Без перекодирования размер и частоту кадров менять нельзя."))(gtx)
 		}
 		key := sizeKeyFor(v)
+		if e.sizeCustom && key != sizeNone {
+			key = sizeCustom
+		}
 		items := []layout.Widget{
 			Labeled(th, i18n.T("Размер"), func(gtx C) D {
 				s, d := e.sSize.Layout(gtx, th, sizeOpts(), key)
@@ -558,6 +514,7 @@ func (e *Editor) sizeCard(gtx C, th *Th, c *preset.Preset) D {
 func (e *Editor) anyClicked(_ *Seg, _ int) bool { return true }
 
 func (e *Editor) pickSize(key string) {
+	e.sizeCustom = key == sizeCustom
 	e.editVideo(func(v *preset.Video, _ *preset.Audio) {
 		if key == sizeNone {
 			v.ScaleMode, v.Width, v.Height = preset.ScaleNone, 0, 0

@@ -77,3 +77,7 @@ func (e *lazyErr) Error() string { return T(e.s) }
 
 // Err returns a sentinel error whose text is translated when it is printed (safe for package-level vars).
 func Err(s string) error { return &lazyErr{s} }
+
+// N marks a Russian source text that is stored or passed around untranslated and translated later with T
+// (for example cached data). It returns s unchanged; TestCatalogComplete checks that it has an English entry.
+func N(s string) string { return s }

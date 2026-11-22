@@ -203,6 +203,10 @@ func (f *Field) Layout(gtx layout.Context, th *theme.Theme, hint string) layout.
 				gtx.Constraints.Min.Y = gtx.Dp(42)
 			}
 			return pad.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				// monospace fonts sit high in their line box: nudge them down so the text looks centered
+				if f.Mono {
+					defer op.Offset(image.Pt(0, gtx.Sp(unit.Sp(size*monoNudge)))).Push(gtx.Ops).Pop()
+				}
 				return layout.Stack{Alignment: align}.Layout(gtx,
 					layout.Stacked(func(gtx layout.Context) layout.Dimensions {
 						gtx.Constraints.Min.X = gtx.Constraints.Max.X
@@ -462,3 +466,6 @@ func withA(c color.NRGBA, a uint8) color.NRGBA { return theme.Alpha(c, a) }
 func theme0(c color.NRGBA) color.NRGBA         { return theme.Alpha(c, 0) }
 
 var boxIn = theme.Box
+
+// monoNudge is the downward shift of monospace text as a fraction of the font size.
+const monoNudge = 0.12

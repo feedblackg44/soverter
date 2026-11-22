@@ -92,7 +92,7 @@ func main() {
 				cfg2.Presets[4] = preset.Preset{ID: "old", Name: "Старый пресет", Suffix: "old", Ext: "mp4", VF: "scale=1280:720", Args: []string{"-c:v", "libx264", "-crf", "23"}}
 			}
 			ed := gui.DemoEditor(cfg2, []int{0, 5, 4}[i])
-			shot(filepath.Join(*out, fmt.Sprintf("editor%d.png", i)), 1770, 1500, theme.DarkPalette(), ed.Layout)
+			shot(filepath.Join(*out, fmt.Sprintf("editor%d.png", i)), 1770, 3600, theme.DarkPalette(), ed.Layout)
 		}
 		shot(filepath.Join(*out, "progress-dark.png"), 840, 480, theme.DarkPalette(), progressScene)
 		return

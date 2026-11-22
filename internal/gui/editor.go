@@ -40,11 +40,6 @@ func Slug(name string) string {
 	return s
 }
 
-type presetRow struct {
-	click widget.Clickable
-	on    Switch
-}
-
 // Editor is the preset editor view. All form state is derived from the selected preset every frame; the only
 // copies are the text fields, which are reloaded when the selection changes.
 type Editor struct {
@@ -55,6 +50,13 @@ type Editor struct {
 	hooks EditorHooks
 	sel   int
 	dirty bool
+
+	// preset drag-and-drop reordering
+	dragIdx  int // index of the row being dragged, -1 if none
+	dragDY   float32
+	rowPitch int
+
+	sizeCustom bool // "custom resolution" was chosen explicitly (values alone cannot tell)
 
 	enc       *encoders.Manager
 	mu        sync.Mutex // guards ffVersion / probeErr / probing
@@ -108,7 +110,7 @@ type Editor struct {
 
 // newEditor builds the editor state without a window.
 func newEditor(path string, cfg *preset.Config, hooks EditorHooks) *Editor {
-	e := &Editor{path: path, cfg: cfg, hooks: hooks, enc: &encoders.Manager{}, loaded: -2}
+	e := &Editor{path: path, cfg: cfg, hooks: hooks, enc: &encoders.Manager{}, loaded: -2, dragIdx: -1}
 	e.list.Axis = 1
 	e.scroll.Axis = 1
 	for _, f := range []**Field{&e.fName, &e.fID, &e.fSuffix, &e.fRawVF, &e.fRawAF, &e.fRawArgs,
@@ -187,12 +189,14 @@ func (e *Editor) touch() {
 
 func (e *Editor) selectPreset(i int) {
 	e.sel = i
+	e.sizeCustom = false
 	e.loaded = -2
 }
 
 // loadFields copies the selected preset into the text fields.
 func (e *Editor) loadFields() {
 	e.loaded = e.sel
+	e.sizeCustom = false
 	c := e.cur()
 	if c == nil {
 		return

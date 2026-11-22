@@ -131,6 +131,8 @@ func (t *Theme) Icon(gtx layout.Context, r rune, size float32, c color.NRGBA) la
 
 // Code draws wrapping monospace text.
 func (t *Theme) Code(gtx layout.Context, size float32, c color.NRGBA, s string) layout.Dimensions {
+	// monospace fonts sit high in their line box: nudge down so the block looks vertically centered
+	defer op.Offset(image.Pt(0, gtx.Sp(unit.Sp(size*0.12)))).Push(gtx.Ops).Pop()
 	f := font.Font{Typeface: t.Mono}
 	return widget.Label{}.Layout(gtx, t.Shaper, f, unit.Sp(size), s, colorOp(gtx, c))
 }

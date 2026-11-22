@@ -77,3 +77,50 @@ func TestStepScale(t *testing.T) {
 		t.Fatalf("off-grid: up %d down %d", up, down)
 	}
 }
+
+func TestCustomSizeStaysCustom(t *testing.T) {
+	e := demo(t)
+	e.pickSize("1080")
+	e.pickSize(sizeCustom) // values still equal 1080p, but the user asked for "custom"
+	if !e.sizeCustom {
+		t.Fatal("custom resolution must be remembered even when the values match a preset")
+	}
+	e.pickSize("720")
+	if e.sizeCustom {
+		t.Fatal("picking a standard size clears the custom flag")
+	}
+}
+
+func TestFinishDragReorders(t *testing.T) {
+	e := demo(t)
+	first := e.cfg.Presets[0].ID
+	third := e.cfg.Presets[2].ID
+	e.rowPitch = 100
+	e.dragIdx, e.dragDY = 0, 210 // dragged two rows down
+	if got := e.dragTarget(); got != 2 {
+		t.Fatalf("target %d", got)
+	}
+	e.finishDrag()
+	if e.cfg.Presets[2].ID != first || e.cfg.Presets[0].ID == first || e.sel != 2 {
+		t.Fatalf("order after drag wrong: %v sel %d", ids(e), e.sel)
+	}
+	if e.cfg.Presets[1].ID != third {
+		t.Fatalf("the rows in between must shift up: %v", ids(e))
+	}
+	if !e.dirty {
+		t.Fatal("reordering must mark the config dirty")
+	}
+	e.dragIdx, e.dragDY = 2, -1000 // far above the list: clamp to the first slot
+	e.finishDrag()
+	if e.cfg.Presets[0].ID != first {
+		t.Fatalf("clamp failed: %v", ids(e))
+	}
+}
+
+func ids(e *Editor) []string {
+	var s []string
+	for _, p := range e.cfg.Presets {
+		s = append(s, p.ID)
+	}
+	return s
+}

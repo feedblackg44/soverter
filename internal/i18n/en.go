@@ -43,7 +43,7 @@ func init() {
 		"Масштабирование выполняется на CPU": "Scaling is done on the CPU",
 		"Размер":                   "Size",
 		"Не менять":                "Keep",
-		"Своё…":                    "Custom…",
+		"Своё разрешение":          "Custom resolution",
 		"Как масштабировать":       "How to scale",
 		"Сохранить пропорции":      "Keep aspect ratio",
 		"Растянуть":                "Stretch",
