@@ -1,11 +1,11 @@
 # vidpreset
 
-Windows утилита на Go: ПКМ по видео → пресет ffmpeg → готовый файл рядом. Редактор пресетов (Fyne), окно прогресса с очередью, меню Explorer (новое Windows 11 и классическое). Личный проект, язык интерфейса и общения: русский.
+Windows утилита на Go: ПКМ по видео → пресет ffmpeg → готовый файл рядом. Редактор пресетов (Gio, свой дизайн: графит + индиго, тёмная и светлая темы), окно прогресса с очередью, меню Explorer (новое Windows 11 и классическое). Личный проект, язык интерфейса и общения: русский.
 
 ## Команды
 
 ```powershell
-go build -ldflags "-H=windowsgui" -o vidpreset.exe ./cmd/vidpreset   # GUI-сборка (нужен MinGW/gcc из-за Fyne, cgo)
+go build -ldflags "-H=windowsgui" -o vidpreset.exe ./cmd/vidpreset   # GUI-сборка (без cgo, C-компилятор не нужен)
 go vet ./... ; go test ./...                                          # весь прогон ~90 с (e2e гоняют реальный ffmpeg)
 go test ./internal/cmdbuild ./internal/ffimport ...                   # быстрые чистые пакеты
 .\shellext\package.ps1                                                # пересобрать и подписать internal/shellext/assets/vidpreset.msix (только при правке ctx.cpp/манифеста)
@@ -19,7 +19,7 @@ go test ./internal/cmdbuild ./internal/ffimport ...                   # быст
 - `cmdbuild` — чистая сборка аргументов ffmpeg и валидация (`Args`, `Validate`, `CheckAvailability`). Всё про флаги энкодеров живёт здесь и покрыто тестами по семействам × режимам.
 - `encoders` — доступность энкодеров: софт по `-encoders`, железо пробным кодированием; кэш в памяти и на диске (`%LOCALAPPDATA%\vidpreset\encoders.json`, 7 дней).
 - `sizecalc` — битрейт по целевому размеру из ffprobe. `runner` — запуск ffmpeg, два прохода, прогресс, очередь. `ffimport` — парсер «Импорт из команды».
-- `ui` — Fyne: редактор (`editor.go`, `builder.go`), `picker.go`, `progress.go`. Логику сюда не класть.
+- `gui` — Gio (immediate mode, без WebView): `theme` (токены цветов, шрифты Segoe UI/Consolas/Segoe Fluent Icons), `kit.go` (сегменты, поля, слайдер, диалоги), `editor.go` (состояние и правила) + `editor_view.go` (отрисовка), `picker.go`, `progress.go`. Форма конструктора выводится из пресета на каждом кадре, копии есть только у текстовых полей. `go run ./cmd/guidemo -shot <папка>` рисует окна в PNG без экрана.
 - `shellint` — классическое меню (реестр HKCU, за интерфейсом для моков). `shellext` — меню Windows 11: подписанный MSIX с C++ COM-библиотекой (`/shellext`), список пресетов читает из `%APPDATA%\vidpreset\menu.txt`. `ipc` — single-instance через loopback-порт 47613.
 - `e2e` — тесты на реальном ffmpeg/NVENC; пропускаются, если ffmpeg нет.
 

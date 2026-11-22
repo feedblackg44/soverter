@@ -65,31 +65,70 @@ type Theme struct {
 	P      Palette
 	Shaper *text.Shaper
 	Face   font.Typeface
+	Mono   font.Typeface
+	Icons  font.Typeface // "" when no icon font is installed
 }
 
-// New loads Segoe UI Variable/Segoe UI from the system (always present on Windows) and falls back to Go fonts.
+func loadFont(file string) []font.FontFace {
+	b, err := os.ReadFile(filepath.Join(os.Getenv("WINDIR"), "Fonts", file))
+	if err != nil {
+		return nil
+	}
+	f, err := opentype.ParseCollection(b)
+	if err != nil {
+		return nil
+	}
+	return f
+}
+
+// New loads Segoe UI, Consolas and Segoe Fluent Icons from the system (present on Windows 10/11);
+// Go fonts are the fallback so the UI always renders.
 func New(p Palette) *Theme {
+	t := &Theme{P: p}
 	var coll []font.FontFace
-	face := font.Typeface("Segoe UI")
-	dir := filepath.Join(os.Getenv("WINDIR"), "Fonts")
-	for _, name := range []string{"segoeui.ttf", "segoeuib.ttf", "seguisb.ttf", "segoeuil.ttf"} {
-		b, err := os.ReadFile(filepath.Join(dir, name))
-		if err != nil {
-			continue
+	for _, name := range []string{"segoeui.ttf", "seguisb.ttf", "segoeuib.ttf", "segoeuil.ttf"} {
+		f := loadFont(name)
+		if t.Face == "" && len(f) > 0 {
+			t.Face = f[0].Font.Typeface
 		}
-		if f, err := opentype.ParseCollection(b); err == nil {
+		coll = append(coll, f...)
+	}
+	if f := loadFont("consola.ttf"); len(f) > 0 {
+		t.Mono = f[0].Font.Typeface
+		coll = append(coll, f...)
+	}
+	for _, name := range []string{"SegoeIcons.ttf", "segmdl2.ttf"} {
+		if f := loadFont(name); len(f) > 0 {
+			t.Icons = f[0].Font.Typeface
 			coll = append(coll, f...)
+			break
 		}
 	}
-	if len(coll) == 0 {
-		coll = gofont.Collection()
-		face = ""
-	}
-	return &Theme{P: p, Shaper: text.NewShaper(text.WithCollection(coll)), Face: face}
+	coll = append(coll, gofont.Collection()...)
+	t.Shaper = text.NewShaper(text.WithCollection(coll))
+	return t
 }
 
 // Font returns a font of the theme typeface with the given weight.
 func (t *Theme) Font(w font.Weight) font.Font { return font.Font{Typeface: t.Face, Weight: w} }
+
+// ColorOp records a solid color for use as text material.
+func ColorOp(gtx layout.Context, c color.NRGBA) op.CallOp { return colorOp(gtx, c) }
+
+// Icon draws a glyph of the icon font (Segoe Fluent Icons code point).
+func (t *Theme) Icon(gtx layout.Context, r rune, size float32, c color.NRGBA) layout.Dimensions {
+	if t.Icons == "" {
+		return layout.Dimensions{}
+	}
+	f := font.Font{Typeface: t.Icons}
+	return widget.Label{MaxLines: 1}.Layout(gtx, t.Shaper, f, unit.Sp(size), string(r), colorOp(gtx, c))
+}
+
+// Code draws wrapping monospace text.
+func (t *Theme) Code(gtx layout.Context, size float32, c color.NRGBA, s string) layout.Dimensions {
+	f := font.Font{Typeface: t.Mono}
+	return widget.Label{}.Layout(gtx, t.Shaper, f, unit.Sp(size), s, colorOp(gtx, c))
+}
 
 func colorOp(gtx layout.Context, c color.NRGBA) op.CallOp {
 	m := op.Record(gtx.Ops)

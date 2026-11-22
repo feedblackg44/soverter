@@ -23,15 +23,18 @@ const (
 	Ghost
 )
 
-// Btn is a clickable button with a text label.
-type Btn struct{ widget.Clickable }
+// Btn is a clickable button with a text label and an optional leading icon.
+type Btn struct {
+	widget.Clickable
+	Icon rune
+}
 
 // Layout draws the button; kind selects the visual weight (one Primary per view).
 func (b *Btn) Layout(gtx layout.Context, th *theme.Theme, label string, kind int) layout.Dimensions {
 	p := th.P
 	return b.Clickable.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		bg, fg, border := p.Surface, p.Text, p.Border
-		hover := b.Hovered()
+		hover := b.Hovered() && gtx.Enabled()
 		switch kind {
 		case Primary:
 			bg, fg, border = p.Accent, p.OnAccent, theme.Alpha(p.Accent, 0)
@@ -48,11 +51,28 @@ func (b *Btn) Layout(gtx layout.Context, th *theme.Theme, label string, kind int
 				bg, fg = p.Raised, p.Text
 			}
 		}
-		if b.Pressed() {
+		if b.Pressed() && gtx.Enabled() {
 			bg = p.Raised
 		}
-		return theme.Box(gtx, bg, border, 8, layout.Inset{Top: 8, Bottom: 8, Left: 16, Right: 16}, func(gtx layout.Context) layout.Dimensions {
-			return th.Text(gtx, 13, font.Medium, fg, label)
+		if !gtx.Enabled() {
+			bg, fg = theme.Alpha(p.Raised, 0xA0), p.TextMuted
+			border = p.Border
+			if kind == Ghost {
+				bg = theme.Alpha(p.Surface, 0)
+			}
+		}
+		return theme.Box(gtx, bg, border, 8, layout.Inset{Top: 8, Bottom: 8, Left: 14, Right: 14}, func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					if b.Icon == 0 {
+						return layout.Dimensions{}
+					}
+					return layout.Inset{Right: 8}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						return th.Icon(gtx, b.Icon, 14, fg)
+					})
+				}),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions { return th.Text(gtx, 13, font.Medium, fg, label) }),
+			)
 		})
 	})
 }

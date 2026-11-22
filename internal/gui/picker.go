@@ -181,3 +181,16 @@ func (v *PickerView) row(gtx layout.Context, th *theme.Theme, items []preset.Pre
 		})
 	})
 }
+
+// OpenPicker opens the preset chooser; onPick runs (in the UI goroutine) before the window closes.
+func OpenPicker(presets []preset.Preset, onPick func(preset.Preset)) *Win {
+	v := &PickerView{Presets: presets}
+	var w *Win
+	v.OnPick = func(p preset.Preset) {
+		onPick(p)
+		w.Close()
+	}
+	v.OnClose = func() { w.Close() }
+	w = Open("Выберите пресет", 460, 480, v)
+	return w
+}

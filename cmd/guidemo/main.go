@@ -4,6 +4,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"image"
 	"image/png"
 	"log"
@@ -12,6 +13,7 @@ import (
 
 	"gioui.org/app"
 	"gioui.org/gpu/headless"
+	"gioui.org/io/input"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
@@ -54,7 +56,9 @@ func shot(path string, w, h int, p theme.Palette, draw func(gtx layout.Context, 
 	defer win.Release()
 	th := theme.New(p)
 	var ops op.Ops
-	gtx := layout.Context{Ops: &ops, Constraints: layout.Exact(image.Pt(w, h)), Metric: unit.Metric{PxPerDp: 1.5, PxPerSp: 1.5}}
+	var router input.Router
+	gtx := layout.Context{Source: router.Source(), Ops: &ops, Constraints: layout.Exact(image.Pt(w, h)), Metric: unit.Metric{PxPerDp: 1.5, PxPerSp: 1.5}}
+	paint.FillShape(gtx.Ops, th.P.Bg, clip.Rect{Max: image.Pt(w, h)}.Op())
 	draw(gtx, th)
 	if err := win.Frame(&ops); err != nil {
 		log.Fatal(err)
@@ -78,6 +82,18 @@ func main() {
 		shot(filepath.Join(*out, "picker-dark.png"), 660, 560, theme.DarkPalette(), pk.Layout)
 		pk2 := &gui.PickerView{Presets: cfg.Presets}
 		shot(filepath.Join(*out, "picker-light.png"), 660, 560, theme.LightPalette(), pk2.Layout)
+		for i := 0; i < 3; i++ {
+			cfg2 := preset.Defaults()
+			if i == 1 {
+				cfg2.Presets[5].Video.Encoder, cfg2.Presets[5].Video.RateMode, cfg2.Presets[5].Video.TargetSizeMB = "nvenc", "size", 50
+				cfg2.Presets[5].Audio = &preset.Audio{Mode: "aac", Bitrate: "128k", VolumeDB: -6}
+			}
+			if i == 2 {
+				cfg2.Presets[4] = preset.Preset{ID: "old", Name: "Старый пресет", Suffix: "old", Ext: "mp4", VF: "scale=1280:720", Args: []string{"-c:v", "libx264", "-crf", "23"}}
+			}
+			ed := gui.DemoEditor(cfg2, []int{0, 5, 4}[i])
+			shot(filepath.Join(*out, fmt.Sprintf("editor%d.png", i)), 1770, 2500, theme.DarkPalette(), ed.Layout)
+		}
 		shot(filepath.Join(*out, "progress-dark.png"), 840, 480, theme.DarkPalette(), progressScene)
 		return
 	}

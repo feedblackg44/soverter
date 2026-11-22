@@ -4,16 +4,13 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"strings"
+	"sync"
 
-	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/app"
-
+	"vidpreset/internal/gui"
 	"vidpreset/internal/ipc"
 	"vidpreset/internal/preset"
 	"vidpreset/internal/runner"
 	"vidpreset/internal/shellext"
-	"vidpreset/internal/ui"
 )
 
 func main() {
@@ -74,27 +71,25 @@ func mustLoad() *preset.Config {
 
 // session owns the single progress window of this process.
 type session struct {
-	app  fyne.App
+	mu   sync.Mutex
 	cfg  *preset.Config
-	prog *ui.Progress
-}
-
-func (s *session) ensure() error {
-	if s.prog != nil {
-		return nil
-	}
-	tools, err := runner.FindTools(s.cfg.Settings.FFmpegPath)
-	if err != nil {
-		return err
-	}
-	tools.Unavailable = hardwareCheck(tools.FFmpeg)
-	s.prog = ui.NewProgress(s.app, tools, s.cfg.Settings.AutoClose, func() { s.prog = nil })
-	return nil
+	prog *gui.ProgressView
 }
 
 func (s *session) add(p preset.Preset, files []string) error {
-	if err := s.ensure(); err != nil {
-		return err
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.prog == nil {
+		tools, err := runner.FindTools(s.cfg.Settings.FFmpegPath)
+		if err != nil {
+			return err
+		}
+		tools.Unavailable = hardwareCheck(tools.FFmpeg)
+		s.prog = gui.OpenProgress(tools, s.cfg.Settings.AutoClose, func() {
+			s.mu.Lock()
+			s.prog = nil
+			s.mu.Unlock()
+		})
 	}
 	s.prog.Add(p, files...)
 	return nil
@@ -113,6 +108,14 @@ func forwardOrOwn(id string, files []string) (l net.Listener, forwarded bool) {
 	return nil, true
 }
 
+func serve(l net.Listener, cfg *preset.Config, s *session) {
+	go ipc.Serve(l, func(m ipc.Msg) {
+		if q, ok := cfg.Find(m.Preset); ok {
+			_ = s.add(q, m.Files)
+		}
+	})
+}
+
 func cmdRun(id string, files []string) {
 	cfg := mustLoad()
 	p, ok := cfg.Find(id)
@@ -124,40 +127,29 @@ func cmdRun(id string, files []string) {
 		return
 	}
 	defer l.Close()
-	a := app.NewWithID("vidpreset.run")
-	s := &session{app: a, cfg: cfg}
+	s := &session{cfg: cfg}
 	if err := s.add(p, files); err != nil {
 		fatal(err.Error())
 	}
-	go ipc.Serve(l, func(m ipc.Msg) {
-		if q, ok := cfg.Find(m.Preset); ok {
-			fyne.Do(func() { _ = s.add(q, m.Files) })
-		}
-	})
-	a.Run()
+	serve(l, cfg, s)
+	gui.Main()
 }
 
 func cmdPick(files []string) {
 	cfg := mustLoad()
-	a := app.NewWithID("vidpreset.pick")
-	s := &session{app: a, cfg: cfg}
-	ui.Picker(a, preset.Enabled(cfg.Presets), func(p preset.Preset) {
+	s := &session{cfg: cfg}
+	gui.OpenPicker(preset.Enabled(cfg.Presets), func(p preset.Preset) {
 		l, forwarded := forwardOrOwn(p.ID, files)
 		if forwarded {
-			a.Quit()
 			return
 		}
 		if err := s.add(p, files); err != nil {
 			l.Close()
 			fatal(err.Error())
 		}
-		go ipc.Serve(l, func(m ipc.Msg) {
-			if q, ok := cfg.Find(m.Preset); ok {
-				fyne.Do(func() { _ = s.add(q, m.Files) })
-			}
-		})
-	}, func() { a.Quit() })
-	a.Run()
+		serve(l, cfg, s)
+	})
+	gui.Main()
 }
 
 func cmdEdit() {
@@ -165,21 +157,20 @@ func cmdEdit() {
 	check(err)
 	cfg, err := preset.Load(p)
 	check(err)
-	a := app.NewWithID("vidpreset.edit")
-	s := &session{app: a, cfg: cfg}
-	ui.Editor(a, p, cfg, ui.EditorHooks{
+	s := &session{cfg: cfg}
+	gui.NewEditor(p, cfg, gui.EditorHooks{
 		Install:   installMenu,
 		Uninstall: uninstallMenu,
 		Untrust:   shellext.UntrustCert,
 		Installed: menuInstalled,
 		Test: func(pr preset.Preset, file string, c *preset.Config) {
+			s.mu.Lock()
 			s.cfg = c
+			s.mu.Unlock()
 			if err := s.add(pr, []string{file}); err != nil {
 				showError(err.Error())
 			}
 		},
 	})
-	a.Run()
+	gui.Main()
 }
-
-var _ = strings.TrimSpace
