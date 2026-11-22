@@ -16,6 +16,7 @@ import (
 
 	"vidpreset/internal/cmdbuild"
 	"vidpreset/internal/preset"
+	"vidpreset/internal/sizecalc"
 )
 
 // BuildArgs returns ffmpeg arguments for display and legacy callers (nil if the preset cannot be built).
@@ -54,6 +55,8 @@ type Progress struct {
 	OutTime time.Duration
 	Speed   float64 // 0 if unknown
 	Done    bool
+	// Pass/Passes are set (1/2, 2/2) while a two-pass encode is running.
+	Pass, Passes int
 }
 
 // ParseProgressLine updates p from one key=value line. Returns true when a block ends (progress=...).
@@ -216,31 +219,107 @@ type EncodeError struct {
 
 func (e *EncodeError) Error() string { return fmt.Sprintf("ffmpeg: %v\n%s", e.Err, e.Tail) }
 
+// ProbeMedia reads duration and audio info with one ffprobe call.
+func (t Tools) ProbeMedia(ctx context.Context, file string) (sizecalc.Media, error) {
+	if t.FFprobe == "" {
+		return sizecalc.Media{}, errors.New("ffprobe не найден: режим «по размеру» недоступен")
+	}
+	cmd := exec.CommandContext(ctx, t.FFprobe, "-v", "error", "-show_entries",
+		"format=duration,bit_rate:stream=codec_type,bit_rate", "-of", "json", file)
+	hideWindow(cmd)
+	out, err := cmd.Output()
+	if ctx.Err() != nil {
+		return sizecalc.Media{}, ErrCanceled
+	}
+	if err != nil {
+		detail := err.Error()
+		var ee *exec.ExitError
+		if errors.As(err, &ee) {
+			if s := strings.TrimSpace(string(ee.Stderr)); s != "" {
+				detail = s
+			}
+		}
+		return sizecalc.Media{}, fmt.Errorf("ffprobe не смог прочитать файл (режим «по размеру» для него недоступен): %s", detail)
+	}
+	return sizecalc.ParseProbe(out)
+}
+
 // Run executes the preset for one file. The partial output is removed on failure or cancel.
 // onProgress may be nil. Returns the output path.
+//
+// For rate_mode = size the video bitrate is computed from the file's duration and audio (ffprobe);
+// libx264/libx265 then run in two passes with their log files in a temp directory that is always removed.
 func (t Tools) Run(ctx context.Context, p preset.Preset, in string, onProgress func(Progress)) (string, error) {
 	if err := t.CheckEncoders(p); err != nil {
 		return "", err
 	}
 	out := OutputPath(in, p, nil)
-	built, err := cmdbuild.Args(p, in, out, cmdbuild.Opts{SrcExt: filepath.Ext(in)})
-	if err != nil {
-		return "", err
+	opts := cmdbuild.Opts{SrcExt: filepath.Ext(in)}
+
+	if cmdbuild.NeedsSize(p) {
+		media, err := t.ProbeMedia(ctx, in)
+		if err != nil {
+			return "", err
+		}
+		v, a := p.Normalized()
+		kbps, err := sizecalc.VideoKbps(v.TargetSizeMB, media, a)
+		if err != nil {
+			return "", err
+		}
+		opts.VideoKbps = kbps
 	}
+
+	passes := []int{0}
+	if cmdbuild.NeedsTwoPass(p) {
+		dir, err := os.MkdirTemp("", "vidpreset-pass-")
+		if err != nil {
+			return "", err
+		}
+		defer os.RemoveAll(dir) // logs are removed on success, failure and cancel
+		opts.PassLog = filepath.Join(dir, "pass")
+		passes = []int{1, 2}
+	}
+
+	for i, pass := range passes {
+		o := opts
+		o.Pass = pass
+		built, err := cmdbuild.Args(p, in, out, o)
+		if err != nil {
+			return "", err
+		}
+		n := i + 1
+		err = t.execFFmpeg(ctx, built, func(pr Progress) {
+			if len(passes) > 1 {
+				pr.Pass, pr.Passes = n, len(passes)
+			}
+			if onProgress != nil {
+				onProgress(pr)
+			}
+		})
+		if err != nil {
+			_ = os.Remove(out)
+			return "", err
+		}
+	}
+	return out, nil
+}
+
+// execFFmpeg runs one ffmpeg process with progress reporting.
+func (t Tools) execFFmpeg(ctx context.Context, built []string, onProgress func(Progress)) error {
 	args := append([]string{"-nostats", "-progress", "pipe:1"}, built...)
 	cmd := exec.CommandContext(ctx, t.FFmpeg, args...)
 	hideWindow(cmd)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return "", err
+		return err
 	}
 	tail := &tailBuf{max: 20}
 	cmd.Stderr = tail
 	if err := cmd.Start(); err != nil {
 		if ctx.Err() != nil {
-			return "", ErrCanceled
+			return ErrCanceled
 		}
-		return "", err
+		return err
 	}
 	var pr Progress
 	sc := bufio.NewScanner(stdout)
@@ -251,14 +330,12 @@ func (t Tools) Run(ctx context.Context, p preset.Preset, in string, onProgress f
 	}
 	werr := cmd.Wait()
 	if ctx.Err() != nil {
-		_ = os.Remove(out)
-		return "", ErrCanceled
+		return ErrCanceled
 	}
 	if werr != nil {
-		_ = os.Remove(out)
-		return "", &EncodeError{Err: werr, Tail: tail.String()}
+		return &EncodeError{Err: werr, Tail: tail.String()}
 	}
-	return out, nil
+	return nil
 }
 
 type tailBuf struct {

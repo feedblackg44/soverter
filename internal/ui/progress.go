@@ -91,6 +91,9 @@ func (p *Progress) refresh() {
 			} else {
 				bar = widget.NewProgressBarInfinite()
 			}
+			if it.Progress.Passes > 1 {
+				info = fmt.Sprintf("проход %d из %d · %s", it.Progress.Pass, it.Progress.Passes, info)
+			}
 			row = container.NewVBox(title, bar, widget.NewLabel(info))
 		case runner.Done:
 			out := it.Output

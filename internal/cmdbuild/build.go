@@ -143,10 +143,12 @@ func Args(p preset.Preset, in, out string, o Opts) ([]string, error) {
 		a2 = append(a2, "-c:a", "libopus", "-b:a", orDefault(a.Bitrate, "128k"))
 	}
 
+	// Extra arguments go into both passes: encoder options (e.g. -tune) must match; muxer options
+	// such as -movflags are harmless on the null muxer.
+	a2 = append(a2, p.Args...)
 	if o.Pass == 1 {
 		return append(a2, "-f", "null", os.DevNull), nil
 	}
-	a2 = append(a2, p.Args...)
 	return append(a2, out), nil
 }
 

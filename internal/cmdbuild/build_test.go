@@ -343,3 +343,12 @@ func TestResolveExt(t *testing.T) {
 		t.Fatal("ResolveExt")
 	}
 }
+
+func TestTwoPassKeepsExtrasInBothPasses(t *testing.T) {
+	p := vid(preset.Video{Codec: "h265", RateMode: "size", TargetSizeMB: 20})
+	p.Args = []string{"-tune", "grain"}
+	p1, _ := Args(p, "in.mp4", "out.mp4", Opts{VideoKbps: 900, Pass: 1, PassLog: "L"})
+	eq(t, p1[4:], "-c:v libx265 -b:v 900k -tag:v hvc1 -pass 1 -passlogfile L -an -tune grain -f null "+os.DevNull)
+	p2, _ := Args(p, "in.mp4", "out.mp4", Opts{VideoKbps: 900, Pass: 2, PassLog: "L"})
+	eq(t, p2[4:], "-c:v libx265 -b:v 900k -tag:v hvc1 -pass 2 -passlogfile L -c:a copy -tune grain out.mp4")
+}
