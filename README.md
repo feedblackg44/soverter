@@ -28,8 +28,10 @@
 ### Сборка пакета меню
 
 Нужны MinGW (g++/gcc) и Windows SDK (`makeappx`, `signtool`; `winget install Microsoft.WindowsSDK.10.0.22621`).
-Пересобирать пакет нужно только при правке `shellext\ctx.cpp` или манифеста; результат
-(`internal\shellext\assets\vidpreset.msix` и `.cer`) вшивается в exe при `go build`.
+Собранный пакет (`internal\shellext\assets\vidpreset.msix` и `.cer`) **не хранится в git**: его создаёт этот скрипт, и он
+вшивается в exe при `go build`. Пересобирать нужно при правке `shellext\ctx.cpp` или манифеста. Если собрать exe без
+пакета (обычный `go build` из клона), программа работает, но меню Windows 11 недоступно и автоматически
+используется классическое.
 
 ```powershell
 .\shellext\package.ps1        # самоподписанный сертификат: создаётся в CurrentUser\My при первом запуске
@@ -54,6 +56,15 @@
 ```powershell
 go build -ldflags "-H=windowsgui" -o vidpreset.exe ./cmd/vidpreset
 ```
+
+### Релиз
+
+```powershell
+.\release.ps1 -Version 1.0.0    # собирает подписанный пакет меню, затем exe с ним; exe и zip попадают в dist\
+```
+
+`dist\` не коммитится: `vidpreset.exe` и zip загружаются в Releases на GitHub. С настоящим сертификатом подписи:
+`.\release.ps1 -Thumbprint <sha1> -TimestampUrl http://timestamp.digicert.com`.
 
 Тесты: `go test ./...` (интеграционный тест пропускается, если нет ffmpeg/libx264).
 

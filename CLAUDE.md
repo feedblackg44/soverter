@@ -9,7 +9,8 @@ go build -ldflags "-H=windowsgui" -o vidpreset.exe ./cmd/vidpreset   # GUI-сб�
 go vet ./... ; go test ./...                                          # весь прогон ~90 с (e2e гоняют реальный ffmpeg)
 go test ./internal/cmdbuild ./internal/ffimport ./internal/gui ...    # быстрые пакеты
 go run ./cmd/guidemo -shot <папка>                                    # рисует окна в PNG без экрана (headless Gio)
-.\shellext\package.ps1                                                # пересобрать и подписать internal/shellext/assets/vidpreset.msix (при правке ctx.cpp/манифеста; нужны MinGW в PATH и Windows SDK)
+.\shellext\package.ps1                                                # собрать и подписать internal/shellext/assets/vidpreset.msix (нужны MinGW в PATH и Windows SDK; файл в git не хранится)
+.\release.ps1 -Version 1.0.0                                           # релиз: пакет меню + exe + zip в dist\ (для загрузки в GitHub Releases)
 ```
 
 Подкоманды exe: `edit` (по умолчанию), `run <id> <файл>...`, `pick`, `install`, `uninstall [--cert]`, `list`. GUI-сборка без консоли: вывод `list`/`install` виден только из обычного терминала (AttachConsole), из git-bash не виден.
@@ -44,7 +45,7 @@ go run ./cmd/guidemo -shot <папка>                                    # р�
 
 - Пресеты и аргументы ffmpeg передаются массивом в `exec.Command`, без shell. Пути с пробелами и кириллицей должны работать.
 - Не писать в `presets.toml` пользователя при тестах и проверках: подменяйте `APPDATA` на временную папку. Повреждённый конфиг никогда не перезаписывается.
-- Меню Windows 11: нельзя регистрировать пакет из папок внутри `AppData` (рабочая папка — `%USERPROFILE%\.vidpreset\shellext`). `SystemFileAssociations\video` в этой системе не работает, классическое меню регистрируется по расширениям. Пакет подписан самоподписанным `CN=vidpreset`; доверие ставится через UAC, из сессии Claude этого делать нельзя. После правки `ctx.cpp` пересобрать пакет `package.ps1` (`.cer` не меняется) и закоммитить `.msix`.
+- Меню Windows 11: нельзя регистрировать пакет из папок внутри `AppData` (рабочая папка — `%USERPROFILE%\.vidpreset\shellext`). `SystemFileAssociations\video` в этой системе не работает, классическое меню регистрируется по расширениям. Пакет подписан самоподписанным `CN=vidpreset`; доверие ставится через UAC, из сессии Claude этого делать нельзя. `.msix`/`.cer` **не коммитятся** (в `.gitignore`), локально лежат после `package.ps1`; без них exe собирается, но `shellext.Available()` ложно, и меню ставится классическим. После правки `ctx.cpp` пересобрать пакет `package.ps1`; тесты пакета без `.msix` пропускаются.
 - Не запускать `uninstall`/`install` на реальном реестре без нужды: это меню владельца.
 - Поля TOML с нулём: числовые поля структурных пресетов помечены `omitempty,omitzero`, иначе пишутся `0.0`.
 - AMF/QSV флаги собраны по документации, на железе не проверены (у владельца RTX 4070 SUPER).
@@ -68,4 +69,4 @@ go run ./cmd/guidemo -shot <папка>                                    # р�
 
 ## Git
 
-Репозиторий локальный. Основная ветка `main`. Новый дизайн (Gio, локализация, масштаб, перетаскивание) слит в `main` fast-forward; ветка `redesign-gio` осталась как закладка и больше не нужна. Коммит на логический этап, сообщения на английском, в конце строка `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`. Бинарники (`vidpreset.exe`) и `shellext/build/` в `.gitignore`; собранные `vidpreset.msix`/`.cer` в `internal/shellext/assets` коммитятся (вшиваются через go:embed).
+Репозиторий локальный. Основная ветка `main`. Новый дизайн (Gio, локализация, масштаб, перетаскивание) слит в `main` fast-forward; ветка `redesign-gio` осталась как закладка и больше не нужна. Коммит на логический этап, сообщения на английском, в конце строка `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`. Бинарники не коммитятся: `vidpreset.exe`, `dist/`, `shellext/build/`, `internal/shellext/assets/vidpreset.msix` и `.cer` в `.gitignore` (собранное выкладывается в GitHub Releases; `AppxManifest.xml` и `logo.png` остаются исходниками). В истории до этого изменения лежат три старые версии `.msix`. Рабочие файлы при `core.autocrlf` бывают с CRLF после переключения веток: многострочные `perl -0pi` тогда не срабатывают, правьте через Edit.
