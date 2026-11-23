@@ -111,8 +111,21 @@ func FindTools(manual string) (Tools, error) {
 			return Tools{}, errors.New(i18n.T("ffmpeg не найден в PATH.\nУстановите: winget install Gyan.FFmpeg · gyan.dev/ffmpeg/builds"))
 		}
 		ff = p
-	} else if _, err := os.Stat(ff); err != nil {
+	} else if st, err := os.Stat(ff); err != nil {
 		return Tools{}, fmt.Errorf(i18n.T("ffmpeg не найден по пути %s"), ff)
+	} else if st.IsDir() {
+		// a folder was given: take ffmpeg.exe from it or from its bin subfolder (the layout of the zip builds)
+		found := ""
+		for _, c := range []string{filepath.Join(ff, "ffmpeg.exe"), filepath.Join(ff, "bin", "ffmpeg.exe")} {
+			if s, err := os.Stat(c); err == nil && !s.IsDir() {
+				found = c
+				break
+			}
+		}
+		if found == "" {
+			return Tools{}, fmt.Errorf(i18n.T("ffmpeg не найден по пути %s"), ff)
+		}
+		ff = found
 	}
 	probe := filepath.Join(filepath.Dir(ff), "ffprobe"+filepath.Ext(ff))
 	if _, err := os.Stat(probe); err != nil {
