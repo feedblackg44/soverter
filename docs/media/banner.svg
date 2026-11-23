@@ -31,8 +31,7 @@
   <g font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" filter="url(#shadow)">
     <rect x="860" y="52" width="360" height="256" rx="14" fill="#1C1E26" stroke="#ffffff" stroke-opacity="0.14"/>
     <rect x="872" y="64" width="336" height="44" rx="8" fill="#5B6CFF" fill-opacity="0.28"/>
-    <rect x="886" y="75" width="22" height="22" rx="5" fill="#5B6CFF"/>
-    <path d="M893 80 L893 92 L903 86 Z" fill="#fff"/>
+    <g transform="translate(885,74) scale(0.094)"><path d="M30 14 L92 58 Q128 48 164 58 L226 14 Q248 90 238 150 Q226 244 128 244 Q30 244 18 150 Q8 90 30 14 Z" fill="#5B6CFF"/><circle cx="84" cy="134" r="52" fill="#fff"/><circle cx="172" cy="134" r="52" fill="#fff"/><path d="M70 112 L70 156 L106 134 Z" fill="#23262E" stroke="#23262E" stroke-width="10" stroke-linejoin="round"/><rect x="148" y="116" width="11" height="36" rx="5" fill="#23262E"/><rect x="167" y="108" width="11" height="52" rx="5" fill="#23262E"/><rect x="186" y="120" width="11" height="28" rx="5" fill="#23262E"/></g>
     <text x="920" y="93" font-size="19" font-weight="600" fill="#E6E8F0">Convert with Soverter</text>
     <path d="M1186 80 L1194 86 L1186 92" fill="none" stroke="#B6BBCE" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
     <text x="892" y="148" font-size="18" fill="#B6BBCE">4:3 → 16:9 (FHD)</text>
