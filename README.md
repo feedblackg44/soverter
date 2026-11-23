@@ -19,7 +19,6 @@
   <a href="https://github.com/feedblackg44/soverter/releases/latest"><img src="https://img.shields.io/github/v/release/feedblackg44/soverter?color=5B6CFF&label=release" alt="Latest release"></a>
   <a href="https://github.com/feedblackg44/soverter/releases"><img src="https://img.shields.io/github/downloads/feedblackg44/soverter/total?color=1D9E75" alt="Downloads"></a>
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-3C3489" alt="Windows 10 | 11">
-  <img src="https://img.shields.io/badge/Go-no%20cgo-00ADD8" alt="Go, no cgo">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-6A62C9" alt="GPL-3.0 license"></a>
 </p>
 
