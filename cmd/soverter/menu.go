@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"vidpreset/internal/encoders"
-	"vidpreset/internal/preset"
-	"vidpreset/internal/shellext"
-	"vidpreset/internal/shellint"
+	"soverter/internal/encoders"
+	"soverter/internal/preset"
+	"soverter/internal/shellext"
+	"soverter/internal/shellint"
 )
 
 // installMenu registers the context menu using the configured integration.

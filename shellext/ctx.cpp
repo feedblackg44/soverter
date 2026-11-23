@@ -1,6 +1,6 @@
-// vidpreset Windows 11 context menu handler (IExplorerCommand).
-// Reads %APPDATA%\vidpreset\menu.txt (UTF-8):
-//   exe=<full path to vidpreset.exe>
+// Soverter Windows 11 context menu handler (IExplorerCommand).
+// Reads %APPDATA%\soverter\menu.txt (UTF-8):
+//   exe=<full path to soverter.exe>
 //   mode=submenu|single
 //   title=<name of the root menu item>   (optional; default follows the Windows display language)
 //   <id>\t<name>      (one line per enabled preset, in menu order)
@@ -15,8 +15,8 @@
 #include <vector>
 #include <new>
 
-// {5C1D2A7E-9B3F-4E6A-8D41-7A2F0B6C9E13}
-static const CLSID CLSID_VidPreset = {0x5c1d2a7e, 0x9b3f, 0x4e6a, {0x8d, 0x41, 0x7a, 0x2f, 0x0b, 0x6c, 0x9e, 0x13}};
+// {11E06287-97A2-497C-A858-57DB8EE15119}
+static const CLSID CLSID_Soverter = {0x11e06287, 0x97a2, 0x497c, {0xa8, 0x58, 0x57, 0xdb, 0x8e, 0xe1, 0x51, 0x19}};
 
 static LONG g_objects = 0;
 static LONG g_locks = 0;
@@ -33,7 +33,7 @@ struct MenuData {
 
 // Default root title in the style of "Edit with Notepad++", chosen by the Windows display language.
 static const wchar_t *DefaultTitle() {
-    return (GetUserDefaultUILanguage() & 0x3FF) == LANG_RUSSIAN ? L"Обработать с помощью vidpreset" : L"Convert with vidpreset";
+    return (GetUserDefaultUILanguage() & 0x3FF) == LANG_RUSSIAN ? L"Обработать с помощью Soverter" : L"Convert with Soverter";
 }
 
 static std::wstring Widen(const std::string &s) {
@@ -47,7 +47,7 @@ static std::wstring Widen(const std::string &s) {
 static bool LoadMenu(MenuData &m) {
     PWSTR dir = nullptr;
     if (FAILED(SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, nullptr, &dir))) return false;
-    std::wstring path = std::wstring(dir) + L"\\vidpreset\\menu.txt";
+    std::wstring path = std::wstring(dir) + L"\\soverter\\menu.txt";
     CoTaskMemFree(dir);
     HANDLE h = CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING,
                            FILE_ATTRIBUTE_NORMAL, nullptr);
@@ -268,7 +268,7 @@ public:
 
 extern "C" HRESULT STDAPICALLTYPE DllGetClassObject(REFCLSID rclsid, REFIID riid, void **ppv) {
     *ppv = nullptr;
-    if (!IsEqualCLSID(rclsid, CLSID_VidPreset)) return CLASS_E_CLASSNOTAVAILABLE;
+    if (!IsEqualCLSID(rclsid, CLSID_Soverter)) return CLASS_E_CLASSNOTAVAILABLE;
     Factory *f = new (std::nothrow) Factory();
     if (!f) return E_OUTOFMEMORY;
     HRESULT hr = f->QueryInterface(riid, ppv);

@@ -1,10 +1,10 @@
 package cmdbuild
 
 import (
+	"soverter/internal/i18n"
 	"strings"
-	"vidpreset/internal/i18n"
 
-	"vidpreset/internal/preset"
+	"soverter/internal/preset"
 )
 
 type Severity int

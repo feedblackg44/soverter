@@ -13,7 +13,7 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 
-	"vidpreset/internal/gui/theme"
+	"soverter/internal/gui/theme"
 )
 
 // Segoe Fluent Icons code points used by the UI.

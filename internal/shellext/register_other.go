@@ -4,9 +4,9 @@ package shellext
 
 import (
 	"errors"
-	"vidpreset/internal/i18n"
+	"soverter/internal/i18n"
 
-	"vidpreset/internal/preset"
+	"soverter/internal/preset"
 )
 
 var errWin = i18n.Err("только Windows 11")

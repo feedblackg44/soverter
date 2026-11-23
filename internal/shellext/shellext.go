@@ -1,7 +1,7 @@
 // Package shellext integrates with the Windows 11 context menu (IExplorerCommand).
 //
 // The menu is a small C++ COM DLL (see /shellext) shipped inside a signed MSIX package
-// (built by shellext/package.ps1 and embedded here). The DLL reads %APPDATA%\vidpreset\menu.txt at menu
+// (built by shellext/package.ps1 and embedded here). The DLL reads %APPDATA%\soverter\menu.txt at menu
 // time, so editing presets only rewrites that file; the package is registered once.
 package shellext
 
@@ -13,16 +13,16 @@ import (
 	"encoding/hex"
 	"strings"
 
-	"vidpreset/internal/preset"
+	"soverter/internal/preset"
 )
 
 //go:embed assets
 var assets embed.FS
 
 const (
-	PackageName = "vidpreset.ContextMenu"
-	msixFile    = "assets/vidpreset.msix"
-	cerFile     = "assets/vidpreset.cer"
+	PackageName = "soverter.ContextMenu"
+	msixFile    = "assets/soverter.msix"
+	cerFile     = "assets/soverter.cer"
 )
 
 func msixBytes() []byte {
@@ -69,7 +69,7 @@ func MenuFile(exe string, presets []preset.Preset, mode, title string) []byte {
 	b.WriteString("mode=" + mode + "\n")
 	title = strings.NewReplacer("\r", " ", "\n", " ").Replace(strings.TrimSpace(title))
 	if title != "" {
-		b.WriteString("title=" + title + "\n") // the DLL falls back to "vidpreset" without it
+		b.WriteString("title=" + title + "\n") // the DLL falls back to "soverter" without it
 	}
 	for _, p := range preset.Enabled(presets) {
 		name := strings.NewReplacer("\t", " ", "\r", " ", "\n", " ").Replace(p.Name)

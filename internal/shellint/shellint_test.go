@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"vidpreset/internal/preset"
+	"soverter/internal/preset"
 )
 
 type mock struct {

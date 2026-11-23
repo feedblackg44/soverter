@@ -1,4 +1,4 @@
-LIBRARY vidpreset_ctx
+LIBRARY soverter_ctx
 EXPORTS
     DllGetClassObject PRIVATE
     DllCanUnloadNow PRIVATE

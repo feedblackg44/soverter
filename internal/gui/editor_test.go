@@ -3,7 +3,7 @@ package gui
 import (
 	"testing"
 
-	"vidpreset/internal/preset"
+	"soverter/internal/preset"
 )
 
 func demo(t *testing.T) *Editor {

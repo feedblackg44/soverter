@@ -9,15 +9,15 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"soverter/internal/i18n"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
-	"vidpreset/internal/i18n"
 
-	"vidpreset/internal/cmdbuild"
-	"vidpreset/internal/preset"
-	"vidpreset/internal/sizecalc"
+	"soverter/internal/cmdbuild"
+	"soverter/internal/preset"
+	"soverter/internal/sizecalc"
 )
 
 // BuildArgs returns ffmpeg arguments for display and legacy callers (nil if the preset cannot be built).
@@ -282,7 +282,7 @@ func (t Tools) Run(ctx context.Context, p preset.Preset, in string, onProgress f
 
 	passes := []int{0}
 	if cmdbuild.NeedsTwoPass(p) {
-		dir, err := os.MkdirTemp("", "vidpreset-pass-")
+		dir, err := os.MkdirTemp("", "soverter-pass-")
 		if err != nil {
 			return "", err
 		}

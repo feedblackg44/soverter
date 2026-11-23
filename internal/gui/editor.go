@@ -4,20 +4,20 @@ import (
 	"bytes"
 	"fmt"
 	"regexp"
+	"soverter/internal/i18n"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
-	"vidpreset/internal/i18n"
 
 	"gioui.org/layout"
 	"gioui.org/widget"
 
-	"vidpreset/internal/cmdbuild"
-	"vidpreset/internal/encoders"
-	"vidpreset/internal/ffimport"
-	"vidpreset/internal/preset"
-	"vidpreset/internal/runner"
+	"soverter/internal/cmdbuild"
+	"soverter/internal/encoders"
+	"soverter/internal/ffimport"
+	"soverter/internal/preset"
+	"soverter/internal/runner"
 )
 
 // EditorHooks connects the editor to the OS-specific parts.
@@ -132,7 +132,7 @@ func newEditor(path string, cfg *preset.Config, hooks EditorHooks) *Editor {
 // NewEditor builds the editor and opens its window.
 func NewEditor(path string, cfg *preset.Config, hooks EditorHooks) *Editor {
 	e := newEditor(path, cfg, hooks)
-	e.win = Open("vidpreset", 1180, 780, e)
+	e.win = Open("Soverter", 1180, 780, e)
 	e.win.OnScale = func(p int) { e.persistUI(func(s *preset.Settings) { s.UIScale = p }) }
 	e.startProbe(false)
 	if hooks.Installed != nil && !hooks.Installed() {
@@ -148,7 +148,7 @@ func (e *Editor) snapshot() { e.saved, _ = preset.Encode(e.cfg); e.dirty = false
 func (e *Editor) recomputeDirty() {
 	cur, _ := preset.Encode(e.cfg)
 	e.dirty = !bytes.Equal(cur, e.saved)
-	t := "vidpreset"
+	t := "Soverter"
 	if e.dirty {
 		t += " *"
 	}
@@ -875,7 +875,7 @@ func (e *Editor) menuDialog() {
 			}
 			if st.bUninst.Clicked(gtx) {
 				e.closeDlg()
-				e.confirm(i18n.T("Удалить меню"), i18n.T("Удалить пункты контекстного меню vidpreset?"), i18n.T("Удалить"), true, func() {
+				e.confirm(i18n.T("Удалить меню"), i18n.T("Удалить пункты контекстного меню Soverter?"), i18n.T("Удалить"), true, func() {
 					if err := e.hooks.Uninstall(); err != nil {
 						e.info(i18n.T("Меню"), err.Error(), true)
 						return
@@ -885,7 +885,7 @@ func (e *Editor) menuDialog() {
 			}
 			if st.bCert.Clicked(gtx) {
 				e.closeDlg()
-				e.confirm(i18n.T("Сертификат"), i18n.T("Удалить сертификат vidpreset из доверенных? Новое меню Windows 11 нельзя будет установить, пока он не будет добавлен снова."), i18n.T("Удалить"), true, func() {
+				e.confirm(i18n.T("Сертификат"), i18n.T("Удалить сертификат Soverter из доверенных? Новое меню Windows 11 нельзя будет установить, пока он не будет добавлен снова."), i18n.T("Удалить"), true, func() {
 					if e.hooks.Untrust == nil {
 						return
 					}

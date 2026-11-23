@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"soverter/internal/i18n"
 	"sync"
-	"vidpreset/internal/i18n"
 
-	"vidpreset/internal/gui"
-	"vidpreset/internal/ipc"
-	"vidpreset/internal/preset"
-	"vidpreset/internal/runner"
-	"vidpreset/internal/shellext"
+	"soverter/internal/gui"
+	"soverter/internal/ipc"
+	"soverter/internal/preset"
+	"soverter/internal/runner"
+	"soverter/internal/shellext"
 )
 
 func main() {
@@ -25,12 +25,12 @@ func main() {
 		cmdEdit()
 	case "run":
 		if len(args) < 2 {
-			fatal(i18n.T("использование: vidpreset run <id> <файл>..."))
+			fatal(i18n.T("использование: soverter run <id> <файл>..."))
 		}
 		cmdRun(args[0], args[1:])
 	case "pick":
 		if len(args) < 1 {
-			fatal(i18n.T("использование: vidpreset pick <файл>..."))
+			fatal(i18n.T("использование: soverter pick <файл>..."))
 		}
 		cmdPick(args)
 	case "install":

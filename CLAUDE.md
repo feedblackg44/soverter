@@ -1,27 +1,27 @@
-# vidpreset
+# Soverter
 
 Windows утилита на Go: ПКМ по видео → пресет ffmpeg → готовый файл рядом. Редактор пресетов (Gio, свой дизайн: графит + индиго, тёмная и светлая темы), окно прогресса с очередью, окно выбора пресета, меню Explorer (новое Windows 11 и классическое). Личный проект. Общение с владельцем и комментарии в коде: русский; интерфейс двуязычный (English по умолчанию, русский переключается в настройках).
 
 ## Команды
 
 ```powershell
-go build -ldflags "-H=windowsgui" -o vidpreset.exe ./cmd/vidpreset   # GUI-сборка (без cgo, C-компилятор не нужен)
+go build -ldflags "-H=windowsgui" -o soverter.exe ./cmd/soverter   # GUI-сборка (без cgo, C-компилятор не нужен)
 go vet ./... ; go test ./...                                          # весь прогон ~90 с (e2e гоняют реальный ffmpeg)
 go test ./internal/cmdbuild ./internal/ffimport ./internal/gui ...    # быстрые пакеты
 go run ./cmd/guidemo -shot <папка>                                    # рисует окна в PNG без экрана (headless Gio)
-.\shellext\package.ps1                                                # собрать и подписать internal/shellext/assets/vidpreset.msix (нужны MinGW в PATH и Windows SDK; файл в git не хранится)
+.\shellext\package.ps1                                                # собрать и подписать internal/shellext/assets/soverter.msix (нужны MinGW в PATH и Windows SDK; файл в git не хранится)
 .\release.ps1 -Version 1.0.0                                           # релиз: пакет меню + exe + zip в dist\ (для загрузки в GitHub Releases)
 ```
 
 Подкоманды exe: `edit` (по умолчанию), `run <id> <файл>...`, `pick`, `install`, `uninstall [--cert]`, `list`. GUI-сборка без консоли: вывод `list`/`install` виден только из обычного терминала (AttachConsole), из git-bash не виден.
 
-После правок кода пересобирайте `vidpreset.exe` в корне репозитория: владелец запускает именно его (и меню Explorer ссылается на него), старый exe не подхватит изменения.
+После правок кода пересобирайте `soverter.exe` в корне репозитория: владелец запускает именно его (и меню Explorer ссылается на него), старый exe не подхватит изменения.
 
 ## Конфиг и данные
 
-- `%APPDATA%\vidpreset\presets.toml` — пресеты и `[settings]`: `menu_mode`, `integration`, `auto_close`, `ffmpeg_path`, `language` (`en`|`ru`, пусто = en), `ui_scale` (проценты, пусто = 100), `menu_title` (пусто = по умолчанию, см. ниже).
-- `%APPDATA%\vidpreset\menu.txt` — для DLL меню Windows 11 (`exe=`, `mode=`, `title=`, строки `id<TAB>name`), пересоздаётся при каждой установке меню.
-- `%LOCALAPPDATA%\vidpreset\encoders.json` — кэш проверки энкодеров (7 дней). `%USERPROFILE%\.vidpreset\shellext` — файлы пакета меню.
+- `%APPDATA%\soverter\presets.toml` — пресеты и `[settings]`: `menu_mode`, `integration`, `auto_close`, `ffmpeg_path`, `language` (`en`|`ru`, пусто = en), `ui_scale` (проценты, пусто = 100), `menu_title` (пусто = по умолчанию, см. ниже).
+- `%APPDATA%\soverter\menu.txt` — для DLL меню Windows 11 (`exe=`, `mode=`, `title=`, строки `id<TAB>name`), пересоздаётся при каждой установке меню.
+- `%LOCALAPPDATA%\soverter\encoders.json` — кэш проверки энкодеров (7 дней). `%USERPROFILE%\.soverter\shellext` — файлы пакета меню.
 - Стартовые пресеты (`preset.Defaults()`) создаются только при отсутствии файла; существующий конфиг владельца не обновляется. Суффиксы по умолчанию: `stretch-fhd`, `stretch-qhd`, `volume-6db`, `30fps`, `720p`, `h265`.
 
 ## Архитектура (`internal/`)
@@ -45,7 +45,7 @@ go run ./cmd/guidemo -shot <папка>                                    # р�
 
 - Пресеты и аргументы ffmpeg передаются массивом в `exec.Command`, без shell. Пути с пробелами и кириллицей должны работать.
 - Не писать в `presets.toml` пользователя при тестах и проверках: подменяйте `APPDATA` на временную папку. Повреждённый конфиг никогда не перезаписывается.
-- Меню Windows 11: нельзя регистрировать пакет из папок внутри `AppData` (рабочая папка — `%USERPROFILE%\.vidpreset\shellext`). `SystemFileAssociations\video` в этой системе не работает, классическое меню регистрируется по расширениям. Пакет подписан самоподписанным `CN=vidpreset`; доверие ставится через UAC, из сессии Claude этого делать нельзя. `.msix`/`.cer` **не коммитятся** (в `.gitignore`), локально лежат после `package.ps1`; без них exe собирается, но `shellext.Available()` ложно, и меню ставится классическим. После правки `ctx.cpp` пересобрать пакет `package.ps1`; тесты пакета без `.msix` пропускаются.
+- Меню Windows 11: нельзя регистрировать пакет из папок внутри `AppData` (рабочая папка — `%USERPROFILE%\.soverter\shellext`). `SystemFileAssociations\video` в этой системе не работает, классическое меню регистрируется по расширениям. Пакет подписан самоподписанным `CN=soverter`; доверие ставится через UAC, из сессии Claude этого делать нельзя. `.msix`/`.cer` **не коммитятся** (в `.gitignore`), локально лежат после `package.ps1`; без них exe собирается, но `shellext.Available()` ложно, и меню ставится классическим. После правки `ctx.cpp` пересобрать пакет `package.ps1`; тесты пакета без `.msix` пропускаются.
 - Не запускать `uninstall`/`install` на реальном реестре без нужды: это меню владельца.
 - Поля TOML с нулём: числовые поля структурных пресетов помечены `omitempty,omitzero`, иначе пишутся `0.0`.
 - AMF/QSV флаги собраны по документации, на железе не проверены (у владельца RTX 4070 SUPER).
@@ -65,8 +65,8 @@ go run ./cmd/guidemo -shot <папка>                                    # р�
 
 Исходный язык кода русский: все видимые пользователю строки оборачиваются в `i18n.T("русский текст", args...)` (для пакетных переменных — `i18n.Err`, для хранимых/кэшируемых текстов — `i18n.N` и перевод позже через `T`), английские переводы лежат в `internal/i18n/en.go` (ключ = точный русский текст). Язык по умолчанию английский. `TestCatalogComplete` падает, если у литерала в `T`/`Err`/`N` нет перевода. Списки опций и константы-тексты строятся функциями (`codecOpts()`, `hwHint()`), а не пакетными переменными/константами, иначе перевод зафиксируется при инициализации. Тесты, сверяющие русский текст, закрепляют язык файлом `lang_test.go`. Для `fmt.Errorf`/`Sprintf` без аргументов использовать `"%s"` + `T(...)`, иначе `go vet` ругается.
 
-Название пункта Explorer по умолчанию — в духе «Edit with Notepad++»: `Convert with vidpreset` / `Обработать с помощью vidpreset` (последнее при русском языке отображения Windows, независимо от языка программы); своё название — `menu_title`.
+Название пункта Explorer по умолчанию — в духе «Edit with Notepad++»: `Convert with Soverter` / `Обработать с помощью Soverter` (последнее при русском языке отображения Windows, независимо от языка программы); своё название — `menu_title`.
 
 ## Git
 
-Репозиторий локальный. Основная ветка `main`. Новый дизайн (Gio, локализация, масштаб, перетаскивание) слит в `main` fast-forward; ветка `redesign-gio` осталась как закладка и больше не нужна. Коммит на логический этап, сообщения на английском, в конце строка `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`. Бинарники не коммитятся: `vidpreset.exe`, `dist/`, `shellext/build/`, `internal/shellext/assets/vidpreset.msix` и `.cer` в `.gitignore` (собранное выкладывается в GitHub Releases; `AppxManifest.xml` и `logo.png` остаются исходниками). В истории до этого изменения лежат три старые версии `.msix`. Рабочие файлы при `core.autocrlf` бывают с CRLF после переключения веток: многострочные `perl -0pi` тогда не срабатывают, правьте через Edit.
+Репозиторий локальный (до первой публикации на GitHub), единственная ветка `main`; историю не переписывать. Коммит на логический этап, сообщения на английском, в конце строка `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`. Бинарники не коммитятся: `soverter.exe`, `dist/`, `shellext/build/`, `internal/shellext/assets/soverter.msix` и `.cer` в `.gitignore` (собранное выкладывается в GitHub Releases; `AppxManifest.xml` и `logo.png` остаются исходниками). Рабочие файлы при `core.autocrlf` бывают с CRLF после переключения веток: многострочные `perl -0pi` тогда не срабатывают, правьте через Edit.

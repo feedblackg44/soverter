@@ -10,15 +10,15 @@ import (
 	"strings"
 	"testing"
 
-	"vidpreset/internal/preset"
-	"vidpreset/internal/shellint"
+	"soverter/internal/preset"
+	"soverter/internal/shellint"
 )
 
 func readZip(t *testing.T) map[string][]byte {
 	t.Helper()
 	b := msixBytes()
 	if len(b) == 0 {
-		t.Skip("assets/vidpreset.msix is not built (it is not committed); run shellext/package.ps1")
+		t.Skip("assets/soverter.msix is not built (it is not committed); run shellext/package.ps1")
 	}
 	zr, err := zip.NewReader(bytes.NewReader(b), int64(len(b)))
 	if err != nil {
@@ -36,7 +36,7 @@ func readZip(t *testing.T) map[string][]byte {
 
 func TestPackageContents(t *testing.T) {
 	files := readZip(t)
-	for _, n := range []string{"AppxManifest.xml", "AppxSignature.p7x", "AppxBlockMap.xml", "vidpreset_ctx.dll", "stub.exe", "logo.png"} {
+	for _, n := range []string{"AppxManifest.xml", "AppxSignature.p7x", "AppxBlockMap.xml", "soverter_ctx.dll", "stub.exe", "logo.png"} {
 		if len(files[n]) == 0 {
 			t.Errorf("package lacks %s", n)
 		}
@@ -58,7 +58,7 @@ func TestPackageContents(t *testing.T) {
 			t.Errorf("no item type for .%s", e)
 		}
 	}
-	if string(files["vidpreset_ctx.dll"][:2]) != "MZ" {
+	if string(files["soverter_ctx.dll"][:2]) != "MZ" {
 		t.Fatal("dll is not a PE file")
 	}
 }

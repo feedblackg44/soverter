@@ -14,7 +14,7 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 
-	"vidpreset/internal/i18n"
+	"soverter/internal/i18n"
 )
 
 type presetRow struct {

@@ -7,8 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"soverter/internal/i18n"
 	"strings"
-	"vidpreset/internal/i18n"
 
 	"github.com/BurntSushi/toml"
 )
@@ -106,13 +106,13 @@ func (c *Config) Find(id string) (Preset, bool) {
 	return Preset{}, false
 }
 
-// Dir returns %APPDATA%\vidpreset (or the user config dir elsewhere).
+// Dir returns %APPDATA%\soverter (or the user config dir elsewhere).
 func Dir() (string, error) {
 	base, err := os.UserConfigDir()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(base, "vidpreset"), nil
+	return filepath.Join(base, "soverter"), nil
 }
 
 func Path() (string, error) {
@@ -264,9 +264,9 @@ func JoinArgs(args []string) string {
 // language (not the application language), in the style of "Edit with Notepad++".
 func DefaultMenuTitle() string {
 	if i18n.SystemLang() == i18n.RU {
-		return "Обработать с помощью vidpreset"
+		return "Обработать с помощью Soverter"
 	}
-	return "Convert with vidpreset"
+	return "Convert with Soverter"
 }
 
 // MenuName returns the configured menu item name or the default.

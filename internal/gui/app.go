@@ -14,9 +14,9 @@ import (
 	"gioui.org/op/paint"
 	"gioui.org/unit"
 
-	"vidpreset/internal/gui/theme"
-	"vidpreset/internal/i18n"
-	"vidpreset/internal/preset"
+	"soverter/internal/gui/theme"
+	"soverter/internal/i18n"
+	"soverter/internal/preset"
 )
 
 // View is the content of a window.

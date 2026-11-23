@@ -4,7 +4,7 @@ import (
 	"gioui.org/font"
 	"gioui.org/layout"
 
-	"vidpreset/internal/gui/theme"
+	"soverter/internal/gui/theme"
 )
 
 // QueueRow describes one queue item for display.

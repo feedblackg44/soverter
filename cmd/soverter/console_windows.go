@@ -17,7 +17,7 @@ func attachConsole() {
 }
 
 func showError(msg string) {
-	t, _ := syscall.UTF16PtrFromString("vidpreset")
+	t, _ := syscall.UTF16PtrFromString("Soverter")
 	m, _ := syscall.UTF16PtrFromString(msg)
 	user32 := syscall.NewLazyDLL("user32.dll")
 	user32.NewProc("MessageBoxW").Call(0, uintptr(unsafe.Pointer(m)), uintptr(unsafe.Pointer(t)), 0x10)

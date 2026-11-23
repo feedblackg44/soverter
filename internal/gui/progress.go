@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"soverter/internal/i18n"
 	"strings"
 	"sync"
 	"time"
-	"vidpreset/internal/i18n"
 
 	"gioui.org/io/clipboard"
 	"gioui.org/layout"
 	"gioui.org/widget"
 
-	"vidpreset/internal/gui/theme"
-	"vidpreset/internal/preset"
-	"vidpreset/internal/runner"
+	"soverter/internal/gui/theme"
+	"soverter/internal/preset"
+	"soverter/internal/runner"
 )
 
 // ProgressView is the queue window shared by all `run` invocations.
@@ -40,7 +40,7 @@ func OpenProgress(tools runner.Tools, autoClose bool, onClose func()) *ProgressV
 			p.win.Invalidate()
 		}
 	})
-	p.win = Open(i18n.T("vidpreset — очередь"), 620, 420, p)
+	p.win = Open(i18n.T("Soverter — очередь"), 620, 420, p)
 	return p
 }
 

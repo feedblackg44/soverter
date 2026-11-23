@@ -3,8 +3,8 @@ package gui
 import (
 	"fmt"
 	"image"
+	"soverter/internal/i18n"
 	"strings"
-	"vidpreset/internal/i18n"
 
 	"gioui.org/font"
 	"gioui.org/io/key"
@@ -13,8 +13,8 @@ import (
 	"gioui.org/op/paint"
 	"gioui.org/widget"
 
-	"vidpreset/internal/gui/theme"
-	"vidpreset/internal/preset"
+	"soverter/internal/gui/theme"
+	"soverter/internal/preset"
 )
 
 // PickerView is a command-palette style preset chooser: type to filter, arrows to move, Enter to run.

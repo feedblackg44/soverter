@@ -1,5 +1,5 @@
 # Builds a release: the signed Windows 11 menu package, then the GUI exe with the package embedded,
-# and puts vidpreset.exe + a zip into dist\ (upload them to a GitHub release; dist\ is not committed).
+# and puts soverter.exe + a zip into dist\ (upload them to a GitHub release; dist\ is not committed).
 #
 # Self-signed (default) or a real code-signing certificate:
 #   .\release.ps1
@@ -18,7 +18,7 @@ if ($TimestampUrl) { $pkgArgs.TimestampUrl = $TimestampUrl }
 & "$PSScriptRoot\shellext\package.ps1" @pkgArgs
 
 New-Item -ItemType Directory -Force dist | Out-Null
-go build -trimpath -ldflags "-H=windowsgui -s -w" -o dist\vidpreset.exe .\cmd\vidpreset
+go build -trimpath -ldflags "-H=windowsgui -s -w" -o dist\soverter.exe .\cmd\soverter
 if ($LASTEXITCODE -ne 0) { throw 'go build failed' }
-Compress-Archive -Force -Path dist\vidpreset.exe -DestinationPath "dist\vidpreset-$Version-windows-x64.zip"
+Compress-Archive -Force -Path dist\soverter.exe -DestinationPath "dist\soverter-$Version-windows-x64.zip"
 Get-ChildItem dist | Select-Object Name, Length

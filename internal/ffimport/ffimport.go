@@ -7,12 +7,12 @@ import (
 	"math"
 	"path/filepath"
 	"regexp"
+	"soverter/internal/i18n"
 	"strconv"
 	"strings"
-	"vidpreset/internal/i18n"
 
-	"vidpreset/internal/cmdbuild"
-	"vidpreset/internal/preset"
+	"soverter/internal/cmdbuild"
+	"soverter/internal/preset"
 )
 
 // Result is the outcome of Parse.

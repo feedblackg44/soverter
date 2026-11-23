@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"strings"
 
-	"vidpreset/internal/preset"
+	"soverter/internal/preset"
 )
 
 const classes = `Software\Classes\SystemFileAssociations`
@@ -19,12 +19,12 @@ const classes = `Software\Classes\SystemFileAssociations`
 var Extensions = []string{"mp4", "mkv", "mov", "avi", "webm", "m4v", "ts", "wmv", "flv", "mpg", "mpeg", "3gp"}
 
 // LegacyRoot is the perceived-type key used by earlier versions; it is only cleaned up.
-const LegacyRoot = classes + `\video\shell\vidpreset`
+const LegacyRoot = classes + `\video\shell\soverter`
 
-// RootFor is the HKCU-relative key owned by vidpreset for one extension.
-func RootFor(ext string) string { return classes + `\.` + ext + `\shell\vidpreset` }
+// RootFor is the HKCU-relative key owned by soverter for one extension.
+func RootFor(ext string) string { return classes + `\.` + ext + `\shell\soverter` }
 
-// Roots lists every root key vidpreset owns.
+// Roots lists every root key soverter owns.
 func Roots() []string {
 	r := make([]string, 0, len(Extensions)+1)
 	for _, e := range Extensions {
@@ -97,7 +97,7 @@ func Uninstall(r Registry) error {
 		if err := r.DeleteTree(root); err != nil {
 			return err
 		}
-		// root = ...\.ext\shell\vidpreset -> try to prune ...\shell and ...\.ext
+		// root = ...\.ext\shell\soverter -> try to prune ...\shell and ...\.ext
 		shell := root[:strings.LastIndex(root, `\`)]
 		ext := shell[:strings.LastIndex(shell, `\`)]
 		for _, k := range []string{shell, ext} {

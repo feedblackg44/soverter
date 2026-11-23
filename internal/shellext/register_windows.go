@@ -7,13 +7,13 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"soverter/internal/i18n"
 	"strings"
 	"syscall"
-	"vidpreset/internal/i18n"
 
 	"golang.org/x/sys/windows/registry"
 
-	"vidpreset/internal/preset"
+	"soverter/internal/preset"
 )
 
 // WorkDir holds the extracted package file (not under AppData; kept simple and visible).
@@ -22,7 +22,7 @@ func WorkDir() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(home, ".vidpreset", "shellext"), nil
+	return filepath.Join(home, ".soverter", "shellext"), nil
 }
 
 const repoKey = `Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\Repository\Packages`
@@ -92,7 +92,7 @@ func TrustCert() error {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return err
 	}
-	cer := filepath.Join(dir, "vidpreset.cer")
+	cer := filepath.Join(dir, "soverter.cer")
 	if err := os.WriteFile(cer, der, 0o644); err != nil {
 		return err
 	}
@@ -151,7 +151,7 @@ func Install(exe string, presets []preset.Preset, mode, title string) error {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return err
 	}
-	msix := filepath.Join(dir, "vidpreset.msix")
+	msix := filepath.Join(dir, "soverter.msix")
 	if err := os.WriteFile(msix, msixBytes(), 0o644); err != nil {
 		return err
 	}

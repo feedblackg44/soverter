@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"vidpreset/internal/preset"
+	"soverter/internal/preset"
 )
 
 func probeStream(t *testing.T, path string) (codec, size string) {

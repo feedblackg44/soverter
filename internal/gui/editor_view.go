@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"image"
 	"io"
+	"soverter/internal/i18n"
 	"strings"
 	"time"
-	"vidpreset/internal/i18n"
 
 	"gioui.org/font"
 	"gioui.org/io/clipboard"
@@ -16,8 +16,8 @@ import (
 	"gioui.org/op/paint"
 	"gioui.org/unit"
 
-	"vidpreset/internal/cmdbuild"
-	"vidpreset/internal/preset"
+	"soverter/internal/cmdbuild"
+	"soverter/internal/preset"
 )
 
 func (e *Editor) setToast(s string) {
@@ -71,7 +71,7 @@ func (e *Editor) sidebar(gtx C, th *Th) D {
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 			layout.Rigid(func(gtx C) D {
 				return Vert(gtx, 2,
-					func(gtx C) D { return th.Text(gtx, 20, font.Medium, p.Text, "vidpreset") },
+					func(gtx C) D { return th.Text(gtx, 20, font.Medium, p.Text, "Soverter") },
 					func(gtx C) D {
 						return th.Text(gtx, 12, font.Normal, p.TextMuted, i18n.T("ПКМ по видео → готовый файл"))
 					},

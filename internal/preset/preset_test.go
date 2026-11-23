@@ -189,7 +189,7 @@ func TestStructuredTOMLHasNoZeroNoise(t *testing.T) {
 
 func TestMenuNameDefaultsAndOverride(t *testing.T) {
 	d := DefaultMenuTitle()
-	if d != "Convert with vidpreset" && d != "Обработать с помощью vidpreset" {
+	if d != "Convert with Soverter" && d != "Обработать с помощью Soverter" {
 		t.Fatalf("unexpected default %q", d)
 	}
 	if got := (Settings{}).MenuName(); got != d {

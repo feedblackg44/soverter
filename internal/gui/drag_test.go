@@ -11,7 +11,7 @@ import (
 	"gioui.org/op"
 	"gioui.org/unit"
 
-	"vidpreset/internal/gui/theme"
+	"soverter/internal/gui/theme"
 )
 
 // frameRig lays the editor out repeatedly with pointer events fed through a real input router.

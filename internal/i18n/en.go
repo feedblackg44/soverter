@@ -172,16 +172,16 @@ func init() {
 		"Меню обновляется само при каждом «Сохранить». Здесь можно переустановить или убрать его вручную.": "The menu updates itself on every “Save”. Here you can reinstall or remove it manually.",
 		"Установить по сохранённым пресетам": "Install from saved presets",
 		"Удалить меню": "Remove menu",
-		"Удалить пункты контекстного меню vidpreset?": "Remove the vidpreset context menu entries?",
-		"Удалить сертификат из доверенных (UAC)":      "Remove certificate from trusted (UAC)",
+		"Удалить пункты контекстного меню Soverter?": "Remove the Soverter context menu entries?",
+		"Удалить сертификат из доверенных (UAC)":     "Remove certificate from trusted (UAC)",
 		"Сертификат": "Certificate",
-		"Удалить сертификат vidpreset из доверенных? Новое меню Windows 11 нельзя будет установить, пока он не будет добавлен снова.": "Remove the vidpreset certificate from the trusted store? The new Windows 11 menu cannot be installed until it is added again.",
+		"Удалить сертификат Soverter из доверенных? Новое меню Windows 11 нельзя будет установить, пока он не будет добавлен снова.": "Remove the Soverter certificate from the trusted store? The new Windows 11 menu cannot be installed until it is added again.",
 
 		// ---- picker / queue ----
 		"Выберите пресет":      "Choose a preset",
 		"Выберите пресет…":     "Choose a preset…",
 		"Ничего не найдено":    "Nothing found",
-		"vidpreset — очередь":  "vidpreset — queue",
+		"Soverter — очередь":   "Soverter — queue",
 		"Очередь пуста":        "The queue is empty",
 		"Отменить текущий":     "Cancel current",
 		"В очереди":            "Queued",
@@ -268,8 +268,8 @@ func init() {
 		"не удалось удалить пакет меню: %s":                                                       "could not remove the menu package: %s",
 
 		// ---- main ----
-		"использование: vidpreset run <id> <файл>...":           "usage: vidpreset run <id> <file>...",
-		"использование: vidpreset pick <файл>...":               "usage: vidpreset pick <file>...",
+		"использование: soverter run <id> <файл>...":            "usage: soverter run <id> <file>...",
+		"использование: soverter pick <файл>...":                "usage: soverter pick <file>...",
 		"неизвестная команда: ":                                 "unknown command: ",
 		"\nдоступно: edit, run, pick, install, uninstall, list": "\navailable: edit, run, pick, install, uninstall, list",
 		"Меню установлено.":                                     "Menu installed.",

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"vidpreset/internal/preset"
+	"soverter/internal/preset"
 )
 
 func sp(s string) []string { return strings.Fields(s) }

@@ -20,9 +20,9 @@ import (
 	"gioui.org/op/paint"
 	"gioui.org/unit"
 
-	"vidpreset/internal/gui"
-	"vidpreset/internal/gui/theme"
-	"vidpreset/internal/preset"
+	"soverter/internal/gui"
+	"soverter/internal/gui/theme"
+	"soverter/internal/preset"
 )
 
 func progressScene(gtx layout.Context, th *theme.Theme) layout.Dimensions {

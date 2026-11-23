@@ -3,7 +3,7 @@
 $ErrorActionPreference = 'Stop'
 $out = Join-Path $PSScriptRoot 'build'
 New-Item -ItemType Directory -Force $out | Out-Null
-g++ -shared -O2 -s -static -static-libgcc -static-libstdc++ -o "$out\vidpreset_ctx.dll" "$PSScriptRoot\ctx.cpp" "$PSScriptRoot\ctx.def" -lole32 -lshell32 -lshlwapi -luuid
+g++ -shared -O2 -s -static -static-libgcc -static-libstdc++ -o "$out\soverter_ctx.dll" "$PSScriptRoot\ctx.cpp" "$PSScriptRoot\ctx.def" -lole32 -lshell32 -lshlwapi -luuid
 if ($LASTEXITCODE) { throw 'dll build failed' }
 gcc -O2 -s -o "$out\stub.exe" "$PSScriptRoot\stub.c"
 if ($LASTEXITCODE) { throw 'stub build failed' }

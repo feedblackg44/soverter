@@ -1,11 +1,11 @@
 package gui
 
 import (
+	"soverter/internal/i18n"
 	"strconv"
 	"strings"
-	"vidpreset/internal/i18n"
 
-	"vidpreset/internal/preset"
+	"soverter/internal/preset"
 )
 
 func labelOf(os []Opt, val string) string {

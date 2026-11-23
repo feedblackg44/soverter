@@ -1,4 +1,4 @@
-// Package theme is the vidpreset design system on top of Gio: color tokens, fonts and small drawing helpers.
+// Package theme is the Soverter design system on top of Gio: color tokens, fonts and small drawing helpers.
 package theme
 
 import (

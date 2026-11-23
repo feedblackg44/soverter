@@ -1,10 +1,10 @@
-// Standalone COM client: loads vidpreset_ctx.dll, enumerates the menu and prints titles.
+// Standalone COM client: loads soverter_ctx.dll, enumerates the menu and prints titles.
 #define UNICODE
 #define _UNICODE
 #include <windows.h>
 #include <shobjidl.h>
 #include <stdio.h>
-static const CLSID CLSID_VidPreset = {0x5c1d2a7e, 0x9b3f, 0x4e6a, {0x8d, 0x41, 0x7a, 0x2f, 0x0b, 0x6c, 0x9e, 0x13}};
+static const CLSID CLSID_Soverter = {0x11e06287, 0x97a2, 0x497c, {0xa8, 0x58, 0x57, 0xdb, 0x8e, 0xe1, 0x51, 0x19}};
 typedef HRESULT(STDAPICALLTYPE *GetCO)(REFCLSID, REFIID, void **);
 int wmain(int argc, wchar_t **argv) {
     CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
@@ -12,7 +12,7 @@ int wmain(int argc, wchar_t **argv) {
     if (!h) { printf("LoadLibrary failed %lu\n", GetLastError()); return 1; }
     GetCO get = (GetCO)GetProcAddress(h, "DllGetClassObject");
     IClassFactory *f = nullptr;
-    if (FAILED(get(CLSID_VidPreset, IID_IClassFactory, (void **)&f))) { puts("no factory"); return 1; }
+    if (FAILED(get(CLSID_Soverter, IID_IClassFactory, (void **)&f))) { puts("no factory"); return 1; }
     IExplorerCommand *root = nullptr;
     if (FAILED(f->CreateInstance(nullptr, IID_IExplorerCommand, (void **)&root))) { puts("no instance"); return 1; }
     LPWSTR t = nullptr; root->GetTitle(nullptr, &t); wprintf(L"root len=%d:", (int)wcslen(t));

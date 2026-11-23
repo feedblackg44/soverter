@@ -1,7 +1,7 @@
-vidpreset.exe
+soverter.exe
 *.test
 shellext/build/
-internal/shellext/assets/vidpreset.msix
-internal/shellext/assets/vidpreset.cer
+internal/shellext/assets/soverter.msix
+internal/shellext/assets/soverter.cer
 dist/
 *~

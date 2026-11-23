@@ -2,8 +2,8 @@ package preset
 
 import (
 	"fmt"
+	"soverter/internal/i18n"
 	"strings"
-	"vidpreset/internal/i18n"
 )
 
 // Structured presets are described by the [preset.video] / [preset.audio] tables and built into an

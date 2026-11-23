@@ -1,4 +1,4 @@
-module vidpreset
+module soverter
 
 go 1.27.0
 

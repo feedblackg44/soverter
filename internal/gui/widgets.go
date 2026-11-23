@@ -1,4 +1,4 @@
-// Package gui contains the Gio-based windows of vidpreset.
+// Package gui contains the Gio-based windows of Soverter.
 package gui
 
 import (
@@ -13,7 +13,7 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 
-	"vidpreset/internal/gui/theme"
+	"soverter/internal/gui/theme"
 )
 
 // Button kinds.

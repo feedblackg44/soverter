@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
-	"vidpreset/internal/encoders"
-	"vidpreset/internal/preset"
-	"vidpreset/internal/runner"
+	"soverter/internal/encoders"
+	"soverter/internal/preset"
+	"soverter/internal/runner"
 )
 
 var (
@@ -74,7 +74,7 @@ func video(v preset.Video, a preset.Audio) preset.Preset {
 }
 
 func tempPassDirs() int {
-	m, _ := filepath.Glob(filepath.Join(os.TempDir(), "vidpreset-pass-*"))
+	m, _ := filepath.Glob(filepath.Join(os.TempDir(), "soverter-pass-*"))
 	return len(m)
 }
 

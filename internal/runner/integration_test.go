@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"vidpreset/internal/preset"
+	"soverter/internal/preset"
 )
 
 func TestRunReal(t *testing.T) {

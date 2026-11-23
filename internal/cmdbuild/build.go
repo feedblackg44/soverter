@@ -5,11 +5,11 @@ package cmdbuild
 import (
 	"fmt"
 	"os"
+	"soverter/internal/i18n"
 	"strconv"
 	"strings"
-	"vidpreset/internal/i18n"
 
-	"vidpreset/internal/preset"
+	"soverter/internal/preset"
 )
 
 // Opts carries run-time facts the preset itself cannot know.

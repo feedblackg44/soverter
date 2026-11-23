@@ -13,12 +13,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"soverter/internal/i18n"
 	"strings"
 	"sync"
 	"time"
-	"vidpreset/internal/i18n"
 
-	"vidpreset/internal/runner"
+	"soverter/internal/runner"
 )
 
 // Hardware encoders that are verified by a trial encode.
@@ -201,7 +201,7 @@ func CachePath() string {
 	if err != nil {
 		return ""
 	}
-	return filepath.Join(d, "vidpreset", "encoders.json")
+	return filepath.Join(d, "soverter", "encoders.json")
 }
 
 // LoadCache returns the cached report if it matches key and is fresh.

@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"vidpreset/internal/preset"
+	"soverter/internal/preset"
 )
 
 type Status int

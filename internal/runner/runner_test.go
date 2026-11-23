@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"vidpreset/internal/preset"
+	"soverter/internal/preset"
 )
 
 func TestBuildArgs(t *testing.T) {

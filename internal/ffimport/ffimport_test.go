@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"vidpreset/internal/cmdbuild"
-	"vidpreset/internal/preset"
+	"soverter/internal/cmdbuild"
+	"soverter/internal/preset"
 )
 
 func mustParse(t *testing.T, cmd string) Result {
