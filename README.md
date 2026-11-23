@@ -197,6 +197,7 @@ The Roboto font (Apache-2.0), Gio (MIT/Unlicense) and the other dependencies are
 Release binaries (`soverter.exe` and the embedded Windows 11 menu package) are built from this repository by
 the GitHub Actions workflow `.github/workflows/release.yml` and signed through [SignPath](https://signpath.org);
 the free code signing certificate is provided by the [SignPath Foundation](https://signpath.org/foundation).
+Release 0.1.0 predates this setup and is self-signed; the signed release workflow is being set up.
 
 - **Roles.** The maintainer ([feedblackg44](https://github.com/feedblackg44)) is the author, reviewer and approver of every
   signing request. Only tagged releases (`v*`) from the `main` branch are signed.
