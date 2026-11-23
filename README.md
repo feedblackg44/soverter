@@ -1,10 +1,59 @@
-# Soverter
+<p align="center">
+  <img src="docs/media/banner.svg" alt="Soverter: right-click a video, pick a preset, get the result next to it" width="100%">
+</p>
 
-Right-click a video → pick an ffmpeg preset → the result appears next to the source file.
-Presets are edited in a GUI; the Explorer context menu updates automatically.
+<p align="center">
+  <b>A free, open-source video converter that lives in the Explorer right-click menu.</b><br>
+  Pick an ffmpeg preset on any video and the result appears right next to the original.
+</p>
 
-Soverter is a small Windows utility written in Go. The interface is native (Gio, no WebView), English by default
-with a Russian translation, dark and light themes follow Windows.
+<p align="center">
+  <a href="https://github.com/feedblackg44/soverter/releases/latest"><b>Download</b></a> ·
+  <a href="#install">Install</a> ·
+  <a href="#preset-builder">Preset builder</a> ·
+  <a href="#building-from-source">Build from source</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/feedblackg44/soverter/actions/workflows/ci.yml"><img src="https://github.com/feedblackg44/soverter/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/feedblackg44/soverter/releases/latest"><img src="https://img.shields.io/github/v/release/feedblackg44/soverter?color=5B6CFF&label=release" alt="Latest release"></a>
+  <a href="https://github.com/feedblackg44/soverter/releases"><img src="https://img.shields.io/github/downloads/feedblackg44/soverter/total?color=1D9E75" alt="Downloads"></a>
+  <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-3C3489" alt="Windows 10 | 11">
+  <img src="https://img.shields.io/badge/Go-no%20cgo-00ADD8" alt="Go, no cgo">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-6A62C9" alt="GPL-3.0 license"></a>
+</p>
+
+<table>
+  <tr>
+    <td width="33%" valign="top">
+      <b>Right where you are</b><br>
+      One item in the Explorer menu (the new Windows 11 one too) with your presets inside.
+      No app to open, no drag and drop into a window.
+    </td>
+    <td width="33%" valign="top">
+      <b>ffmpeg without the syntax</b><br>
+      Build a preset from a form: codec, hardware encoder, quality or target file size, scaling, audio.
+      Or paste a ready ffmpeg command and import it.
+    </td>
+    <td width="33%" valign="top">
+      <b>Native and private</b><br>
+      A small native app, no WebView and no telemetry. Everything runs locally; the result is saved next to the original.
+    </td>
+  </tr>
+</table>
+
+## Screenshots
+
+<p align="center">
+  <img src="docs/media/editor.png" alt="Preset editor" width="820"><br>
+  <sub>The preset editor: a form instead of ffmpeg flags, with a live command preview.</sub>
+</p>
+
+<p align="center">
+  <img src="docs/media/picker-dark.png" alt="Preset picker, dark theme" width="400">
+  <img src="docs/media/picker-light.png" alt="Preset picker, light theme" width="400"><br>
+  <sub>The preset picker (single-item menu mode), dark and light themes follow Windows.</sub>
+</p>
 
 ## Requirements
 
