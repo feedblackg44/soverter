@@ -51,7 +51,7 @@ func planRoot(root, exe string, presets []preset.Preset, mode, title string) []E
 	if title == "" {
 		title = preset.DefaultMenuTitle()
 	}
-	es := []Entry{{root, "MUIVerb", title}}
+	es := []Entry{{root, "MUIVerb", title}, {root, "Icon", q + ",0"}} // first icon group of the exe
 	if mode == "single" {
 		return append(es, Entry{root + `\command`, "", q + ` pick "%1"`})
 	}

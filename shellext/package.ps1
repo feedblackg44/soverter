@@ -53,7 +53,7 @@ Write-Host "Signing as $($cert.Subject) (self-signed: $selfSigned)"
 $stage = Join-Path $here 'build\stage'
 Remove-Item $stage -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force $stage | Out-Null
-Copy-Item "$here\build\soverter_ctx.dll", "$here\build\stub.exe", "$here\logo.png" $stage
+Copy-Item "$here\build\soverter_ctx.dll", "$here\build\stub.exe", "$here\logo.png", "$here\logo44.png", "$here\logo50.png" $stage
 (Get-Content "$assets\AppxManifest.xml" -Raw -Encoding UTF8).Replace('@PUBLISHER@', $cert.Subject).Replace('@VERSION@', $Version) |
     Set-Content "$stage\AppxManifest.xml" -Encoding UTF8
 

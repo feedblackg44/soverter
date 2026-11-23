@@ -149,3 +149,10 @@ volume_db = -6
 - Single-instance реализован через loopback-порт `127.0.0.1:47613`.
 - В режиме «один пункт» Explorer в классическом меню запускает `pick` на каждый файл отдельно; новое меню
   передаёт все выделенные файлы одному процессу.
+
+## Иконка
+
+Исходник — `assets/icon.png` (1024×1024) и `assets/icon.svg`. Все производные (`assets/soverter.ico`, логотипы пакета
+`shellext/logo*.png`, ресурс `cmd/soverter/rsrc_windows_amd64.syso`) создаёт `.\assets\icons.ps1` (нужен `windres` из MinGW
+только для этого шага). `.syso` лежит в git, поэтому обычный `go build` встраивает иконку в exe; её же берут окно Gio,
+пункт меню Windows 11 (`IExplorerCommand::GetIcon` → `soverter.exe,0`) и классическое меню (значение `Icon`).

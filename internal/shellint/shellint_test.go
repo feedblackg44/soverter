@@ -38,6 +38,9 @@ func TestInstallSubmenu(t *testing.T) {
 		if _, ok := m.vals[RootFor(ext)+"|MUIVerb"]; !ok {
 			t.Fatalf("no menu for .%s", ext)
 		}
+		if v := m.vals[RootFor(ext)+"|Icon"]; !strings.HasSuffix(v, `,0`) {
+			t.Fatalf("no menu icon for .%s: %q", ext, v)
+		}
 	}
 	k := root + `\shell\001-b-one`
 	if m.vals[k+"|MUIVerb"] != "Один" {

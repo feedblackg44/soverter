@@ -143,9 +143,13 @@ public:
     STDMETHODIMP GetTitle(IShellItemArray *, LPWSTR *name) override {
         return SHStrDupW(kind_ == ROOT ? (menu_.title.empty() ? DefaultTitle() : menu_.title.c_str()) : entry_.name.c_str(), name);
     }
+    // The icon is the first icon group of soverter.exe (the owl); "path,0" is the Explorer convention.
     STDMETHODIMP GetIcon(IShellItemArray *, LPWSTR *icon) override {
-        *icon = nullptr;
-        return E_NOTIMPL;
+        if (kind_ != ROOT || menu_.exe.empty()) {
+            *icon = nullptr;
+            return E_NOTIMPL;
+        }
+        return SHStrDupW((menu_.exe + L",0").c_str(), icon);
     }
     STDMETHODIMP GetToolTip(IShellItemArray *, LPWSTR *tip) override {
         *tip = nullptr;

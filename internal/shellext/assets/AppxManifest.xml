@@ -12,7 +12,7 @@
   <Properties>
     <DisplayName>Soverter</DisplayName>
     <PublisherDisplayName>Soverter</PublisherDisplayName>
-    <Logo>logo.png</Logo>
+    <Logo>logo50.png</Logo>
   </Properties>
   <Resources>
     <Resource Language="en-us" />
@@ -25,7 +25,7 @@
   </Capabilities>
   <Applications>
     <Application Id="App" Executable="stub.exe" EntryPoint="Windows.FullTrustApplication">
-      <uap:VisualElements DisplayName="Soverter" Description="Soverter context menu" BackgroundColor="transparent" Square150x150Logo="logo.png" Square44x44Logo="logo.png" AppListEntry="none" />
+      <uap:VisualElements DisplayName="Soverter" Description="Soverter context menu" BackgroundColor="transparent" Square150x150Logo="logo.png" Square44x44Logo="logo44.png" AppListEntry="none" />
       <Extensions>
         <desktop4:Extension Category="windows.fileExplorerContextMenus">
           <desktop4:FileExplorerContextMenus>
