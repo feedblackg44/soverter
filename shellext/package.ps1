@@ -13,7 +13,11 @@ param(
     [string]$Pfx,
     [string]$PfxPassword,
     [string]$TimestampUrl,
-    [string]$Version = '1.0.0.0'
+    [string]$Version = '1.0.0.0',
+    # CI mode: build the package unsigned for an external signing service (SignPath). -Publisher must equal the
+    # Subject of the certificate the service signs with. No .cer is produced, so users get no trust step.
+    [switch]$Unsigned,
+    [string]$Publisher
 )
 $ErrorActionPreference = 'Stop'
 $here = $PSScriptRoot
@@ -29,7 +33,13 @@ $makeappx = "$($bin.FullName)\x64\makeappx.exe"
 $signtool = "$($bin.FullName)\x64\signtool.exe"
 
 # --- certificate ---
-if ($Pfx) {
+if ($Unsigned) {
+    if (-not $Publisher) { throw '-Unsigned needs -Publisher (the Subject of the signing certificate)' }
+    $cert = $null
+    $publisherSubject = $Publisher
+    $selfSigned = $false
+    Write-Host "Unsigned package for $Publisher (to be signed externally)"
+} elseif ($Pfx) {
     $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($Pfx, $PfxPassword)
     $signArgs = @('/f', $Pfx) + $(if ($PfxPassword) { @('/p', $PfxPassword) } else { @() })
 } else {
@@ -46,15 +56,18 @@ if ($Pfx) {
     }
     $signArgs = @('/sha1', $cert.Thumbprint, '/s', 'My')
 }
-$selfSigned = $cert.Subject -eq $cert.Issuer
-Write-Host "Signing as $($cert.Subject) (self-signed: $selfSigned)"
+if (-not $Unsigned) {
+    $publisherSubject = $cert.Subject
+    $selfSigned = $cert.Subject -eq $cert.Issuer
+    Write-Host "Signing as $publisherSubject (self-signed: $selfSigned)"
+}
 
 # --- stage ---
 $stage = Join-Path $here 'build\stage'
 Remove-Item $stage -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force $stage | Out-Null
 Copy-Item "$here\build\soverter_ctx.dll", "$here\build\stub.exe", "$here\logo.png", "$here\logo44.png", "$here\logo50.png" $stage
-(Get-Content "$assets\AppxManifest.xml" -Raw -Encoding UTF8).Replace('@PUBLISHER@', $cert.Subject).Replace('@VERSION@', $Version) |
+(Get-Content "$assets\AppxManifest.xml" -Raw -Encoding UTF8).Replace('@PUBLISHER@', $publisherSubject).Replace('@VERSION@', $Version) |
     Set-Content "$stage\AppxManifest.xml" -Encoding UTF8
 
 # --- pack + sign ---
@@ -62,8 +75,10 @@ $msix = Join-Path $assets 'soverter.msix'
 & $makeappx pack /o /d $stage /p $msix | Out-Null
 if ($LASTEXITCODE) { throw 'makeappx failed' }
 $ts = if ($TimestampUrl) { @('/tr', $TimestampUrl, '/td', 'SHA256') } else { @() }
-& $signtool sign /fd SHA256 @signArgs @ts $msix
-if ($LASTEXITCODE) { throw 'signtool failed' }
+if (-not $Unsigned) {
+    & $signtool sign /fd SHA256 @signArgs @ts $msix
+    if ($LASTEXITCODE) { throw 'signtool failed' }
+}
 
 # --- public certificate for self-signed builds ---
 $cer = Join-Path $assets 'soverter.cer'

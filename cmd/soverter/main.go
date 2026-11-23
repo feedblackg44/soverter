@@ -161,10 +161,14 @@ func cmdEdit() {
 	check(err)
 	gui.Configure(cfg.Settings)
 	s := &session{cfg: cfg}
+	var untrust func() error
+	if shellext.CertThumbprint() != "" { // self-signed build; a trusted signature has no certificate to untrust
+		untrust = shellext.UntrustCert
+	}
 	gui.NewEditor(p, cfg, gui.EditorHooks{
 		Install:   installMenu,
 		Uninstall: uninstallMenu,
-		Untrust:   shellext.UntrustCert,
+		Untrust:   untrust,
 		Installed: menuInstalled,
 		Test: func(pr preset.Preset, file string, c *preset.Config) {
 			s.mu.Lock()

@@ -70,3 +70,7 @@ go run ./cmd/guidemo -shot <папка>                                    # р�
 ## Git
 
 Репозиторий локальный (до первой публикации на GitHub), единственная ветка `main`; историю не переписывать. Коммит на логический этап, сообщения на английском, в конце строка `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`. Бинарники не коммитятся: `soverter.exe`, `dist/`, `shellext/build/`, `internal/shellext/assets/soverter.msix` и `.cer` в `.gitignore` (собранное выкладывается в GitHub Releases; `AppxManifest.xml` и `logo.png` остаются исходниками). Рабочие файлы при `core.autocrlf` бывают с CRLF после переключения веток: многострочные `perl -0pi` тогда не срабатывают, правьте через Edit.
+
+## Релиз и подпись
+
+Для публичных релизов меню Windows 11 подписывается через SignPath Foundation (workflow `.github/workflows/release.yml`, черновик, ещё не запускался): `shellext\package.ps1 -Unsigned -Publisher '<Subject сертификата SignPath>'` собирает неподписанный пакет без `.cer` (тогда `CertTrusted()` истинна, шага доверия и UAC нет, кнопка «Удалить сертификат из доверенных» скрыта, потому что `CertThumbprint()` пуст). Самоподписанный режим остаётся для локальных сборок и форков. Лицензия GPL-3.0, политика подписи в README.

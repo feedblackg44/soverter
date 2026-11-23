@@ -161,3 +161,16 @@ volume_db = -6
 
 Soverter распространяется под [GNU GPL v3](LICENSE) (или любой более поздней версией). Copyright (C) 2026 feedblackg44.
 Шрифт Roboto (Apache-2.0), Gio (MIT/Unlicense) и остальные зависимости совместимы с GPLv3; ffmpeg в программу не входит.
+
+## Code signing policy
+
+Release binaries (`soverter.exe` and the embedded Windows 11 menu package) are built from this repository by
+the GitHub Actions workflow `.github/workflows/release.yml` and signed through [SignPath](https://signpath.org);
+the free code signing certificate is provided by the [SignPath Foundation](https://signpath.org/foundation).
+
+- **Roles.** The maintainer ([feedblackg44](https://github.com/feedblackg44)) is the author, reviewer and approver of every
+  signing request. Only tagged releases (`v*`) from the `main` branch are signed.
+- **Privacy.** Soverter does not collect or transmit any data. It runs `ffmpeg` locally on the files you choose; it makes
+  no network connections (a loopback port, `127.0.0.1:47613`, only keeps a single instance running).
+- **Local builds.** A build from source is not signed by SignPath. For the Windows 11 menu such a build uses a
+  self-signed certificate that you trust once (one UAC prompt); without the package, the classic menu is used.

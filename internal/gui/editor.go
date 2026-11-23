@@ -894,16 +894,21 @@ func (e *Editor) menuDialog() {
 					}
 				})
 			}
-			return Vert(gtx, 12,
+			rows := []layout.Widget{
 				Hint(th, i18n.T("Меню обновляется само при каждом «Сохранить». Здесь можно переустановить или убрать его вручную.")),
 				func(gtx C) D {
 					return st.bInst.Layout(gtx, th, i18n.T("Установить по сохранённым пресетам"), Primary)
 				},
 				func(gtx C) D { return st.bUninst.Layout(gtx, th, i18n.T("Удалить меню"), Secondary) },
-				func(gtx C) D {
+			}
+			// Only builds with an embedded self-signed certificate have one to remove; a package signed by a
+			// trusted authority needs no trust step at all.
+			if e.hooks.Untrust != nil {
+				rows = append(rows, func(gtx C) D {
 					return st.bCert.Layout(gtx, th, i18n.T("Удалить сертификат из доверенных (UAC)"), Ghost)
-				},
-			)
+				})
+			}
+			return Vert(gtx, 12, rows...)
 		},
 		Actions: []*DAction{{Label: i18n.T("Закрыть"), Kind: Ghost, Do: e.closeDlg}},
 	}
