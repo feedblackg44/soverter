@@ -156,3 +156,8 @@ volume_db = -6
 `shellext/logo*.png`, ресурс `cmd/soverter/rsrc_windows_amd64.syso`) создаёт `.\assets\icons.ps1` (нужен `windres` из MinGW
 только для этого шага). `.syso` лежит в git, поэтому обычный `go build` встраивает иконку в exe; её же берут окно Gio,
 пункт меню Windows 11 (`IExplorerCommand::GetIcon` → `soverter.exe,0`) и классическое меню (значение `Icon`).
+
+## Лицензия
+
+Soverter распространяется под [GNU GPL v3](LICENSE) (или любой более поздней версией). Copyright (C) 2026 feedblackg44.
+Шрифт Roboto (Apache-2.0), Gio (MIT/Unlicense) и остальные зависимости совместимы с GPLv3; ffmpeg в программу не входит.
