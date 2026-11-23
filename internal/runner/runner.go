@@ -108,7 +108,7 @@ func FindTools(manual string) (Tools, error) {
 	if ff == "" {
 		p, err := exec.LookPath("ffmpeg")
 		if err != nil {
-			return Tools{}, errors.New(i18n.T("ffmpeg не найден в PATH.\nУстановите: winget install Gyan.FFmpeg"))
+			return Tools{}, errors.New(i18n.T("ffmpeg не найден в PATH.\nУстановите: winget install Gyan.FFmpeg · gyan.dev/ffmpeg/builds"))
 		}
 		ff = p
 	} else if _, err := os.Stat(ff); err != nil {
@@ -208,7 +208,7 @@ func (t Tools) CheckEncoders(p preset.Preset) error {
 	needed := append(RequiredEncoders(p.Args), cmdbuild.Encoders(p)...)
 	for _, e := range needed {
 		if !t.HasEncoder(e) {
-			return fmt.Errorf(i18n.T("в вашей сборке ffmpeg нет энкодера %q (нужен пресету «%s»).\nУстановите полную сборку: winget install Gyan.FFmpeg"), e, p.Name)
+			return fmt.Errorf(i18n.T("в вашей сборке ffmpeg нет энкодера %q (нужен пресету «%s»).\nУстановите полную сборку: winget install Gyan.FFmpeg · gyan.dev/ffmpeg/builds"), e, p.Name)
 		}
 		if t.Unavailable != nil {
 			if why := t.Unavailable(e); why != "" {

@@ -57,7 +57,7 @@
 ## Requirements
 
 - Windows 10 or 11 (the new Windows 11 context menu needs Windows 11)
-- `ffmpeg` and `ffprobe` in `PATH` (`winget install Gyan.FFmpeg`); not bundled
+- `ffmpeg` and `ffprobe` in `PATH`, not bundled. Use a full build with libx264/libx265 (`winget install Gyan.FFmpeg`, or the "full" GPL build from <https://www.gyan.dev/ffmpeg/builds/>); minimal and LGPL builds lack these encoders
 
 ## Install
 

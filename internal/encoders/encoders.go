@@ -91,7 +91,7 @@ func Evaluate(list string, probe func(name string) error, parallel int) Report {
 		if ListContains(list, n) {
 			set(n, Status{Available: true})
 		} else {
-			set(n, Status{Reason: i18n.N("в вашей сборке ffmpeg нет этого энкодера (winget install Gyan.FFmpeg)")})
+			set(n, Status{Reason: i18n.N("в вашей сборке ffmpeg нет этого энкодера (winget install Gyan.FFmpeg · gyan.dev/ffmpeg/builds)")})
 		}
 	}
 	if parallel < 1 {

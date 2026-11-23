@@ -227,9 +227,9 @@ func init() {
 		"нет видеокарты NVIDIA с поддержкой этого кодека или не установлен драйвер": "no NVIDIA graphics card supporting this codec, or the driver is not installed",
 		"нет видеокарты AMD с поддержкой этого кодека или не установлен драйвер":    "no AMD graphics card supporting this codec, or the driver is not installed",
 		"нет графики Intel с поддержкой этого кодека или не установлен драйвер":     "no Intel graphics supporting this codec, or the driver is not installed",
-		"энкодер не запускается":                                                "the encoder does not start",
-		"в вашей сборке ffmpeg нет этого энкодера (winget install Gyan.FFmpeg)": "your ffmpeg build does not have this encoder (winget install Gyan.FFmpeg)",
-		"в вашей сборке ffmpeg нет этого энкодера":                              "your ffmpeg build does not have this encoder",
+		"энкодер не запускается": "the encoder does not start",
+		"в вашей сборке ffmpeg нет этого энкодера (winget install Gyan.FFmpeg · gyan.dev/ffmpeg/builds)": "your ffmpeg build does not have this encoder (winget install Gyan.FFmpeg · gyan.dev/ffmpeg/builds)",
+		"в вашей сборке ffmpeg нет этого энкодера":                                                       "your ffmpeg build does not have this encoder",
 
 		// ---- preset ----
 		"недопустимый id %q (разрешены a-z0-9-)":        "invalid id %q (allowed: a-z0-9-)",
@@ -245,10 +245,10 @@ func init() {
 		"preset %s: отрицательные значения недопустимы": "preset %s: negative values are not allowed",
 
 		// ---- runner / sizecalc ----
-		"ffmpeg не найден в PATH.\nУстановите: winget install Gyan.FFmpeg": "ffmpeg was not found in PATH.\nInstall it: winget install Gyan.FFmpeg",
-		"ffmpeg не найден по пути %s":                                      "ffmpeg not found at %s",
-		"в вашей сборке ffmpeg нет энкодера %q (нужен пресету «%s»).\nУстановите полную сборку: winget install Gyan.FFmpeg": "your ffmpeg build has no encoder %q (needed by preset “%s”).\nInstall the full build: winget install Gyan.FFmpeg",
-		"энкодер %s недоступен на этой машине (нужен пресету «%s»): %s.\nВыберите другой энкодер в редакторе пресета.":      "encoder %s is unavailable on this machine (needed by preset “%s”): %s.\nChoose another encoder in the preset editor.",
+		"ffmpeg не найден в PATH.\nУстановите: winget install Gyan.FFmpeg · gyan.dev/ffmpeg/builds": "ffmpeg was not found in PATH.\nInstall it: winget install Gyan.FFmpeg · gyan.dev/ffmpeg/builds",
+		"ffmpeg не найден по пути %s": "ffmpeg not found at %s",
+		"в вашей сборке ffmpeg нет энкодера %q (нужен пресету «%s»).\nУстановите полную сборку: winget install Gyan.FFmpeg · gyan.dev/ffmpeg/builds": "your ffmpeg build has no encoder %q (needed by preset “%s”).\nInstall the full build: winget install Gyan.FFmpeg · gyan.dev/ffmpeg/builds",
+		"энкодер %s недоступен на этой машине (нужен пресету «%s»): %s.\nВыберите другой энкодер в редакторе пресета.":                               "encoder %s is unavailable on this machine (needed by preset “%s”): %s.\nChoose another encoder in the preset editor.",
 		"отменено": "canceled",
 		"ffprobe не найден: режим «по размеру» недоступен":                                           "ffprobe not found: the “by size” mode is unavailable",
 		"ffprobe не смог прочитать файл (режим «по размеру» для него недоступен): %s":                "ffprobe could not read the file (the “by size” mode is unavailable for it): %s",
