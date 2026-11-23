@@ -2,6 +2,7 @@ package shellext
 
 import (
 	"bytes"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"os"
@@ -10,6 +11,8 @@ import (
 	"soverter/internal/i18n"
 	"strings"
 	"syscall"
+	"time"
+	"unicode/utf16"
 
 	"golang.org/x/sys/windows/registry"
 
@@ -74,8 +77,13 @@ func CertTrusted() bool {
 	if th == "" {
 		return true
 	}
-	_, err := powershell(fmt.Sprintf(`if (-not (Test-Path 'Cert:\LocalMachine\TrustedPeople\%s')) { exit 1 }`, th))
-	return err == nil
+	// The machine store keeps one registry key per certificate (readable without admin rights); no PowerShell.
+	k, err := registry.OpenKey(registry.LOCAL_MACHINE, `SOFTWARE\Microsoft\SystemCertificates\TrustedPeople\Certificates\`+th, registry.QUERY_VALUE)
+	if err != nil {
+		return false
+	}
+	k.Close()
+	return true
 }
 
 // TrustCert imports the embedded certificate into LocalMachine\TrustedPeople. This needs administrator
@@ -96,14 +104,27 @@ func TrustCert() error {
 	if err := os.WriteFile(cer, der, 0o644); err != nil {
 		return err
 	}
-	inner := fmt.Sprintf(`Import-Certificate -FilePath '%s' -CertStoreLocation Cert:\LocalMachine\TrustedPeople | Out-Null`, cer)
-	_, err = powershell(fmt.Sprintf(`Start-Process powershell -Verb RunAs -Wait -WindowStyle Hidden -ArgumentList '-NoProfile','-Command',"%s"`,
-		strings.ReplaceAll(inner, `"`, "`\"")))
+	log := filepath.Join(dir, "trust.log")
+	os.Remove(log)
+	// The elevated script is passed as -EncodedCommand (no quoting problems) and records its own outcome.
+	inner := fmt.Sprintf(`try { Import-Certificate -FilePath '%s' -CertStoreLocation Cert:\LocalMachine\TrustedPeople -ErrorAction Stop | Out-Null; 'ok' | Set-Content -Encoding UTF8 '%s' } catch { $_ | Out-String | Set-Content -Encoding UTF8 '%s' }`, cer, log, log)
+	u16 := utf16.Encode([]rune(inner))
+	raw := make([]byte, 0, len(u16)*2)
+	for _, c := range u16 {
+		raw = append(raw, byte(c), byte(c>>8))
+	}
+	enc := base64.StdEncoding.EncodeToString(raw)
+	out, err := powershell(fmt.Sprintf(`Start-Process powershell -Verb RunAs -Wait -WindowStyle Hidden -ArgumentList '-NoProfile','-EncodedCommand','%s'`, enc))
 	if err != nil {
 		return errors.New(i18n.T("не удалось запросить права администратора для установки сертификата (отмена UAC?)"))
 	}
+	// the store may lag a moment behind the elevated process
+	for i := 0; i < 20 && !CertTrusted(); i++ {
+		time.Sleep(250 * time.Millisecond)
+	}
 	if !CertTrusted() {
-		return errors.New(i18n.T("сертификат не был добавлен в доверенные (подтвердите запрос UAC)"))
+		detail, _ := os.ReadFile(log)
+		return fmt.Errorf("%s\n%s%s", i18n.T("сертификат не был добавлен в доверенные (подтвердите запрос UAC)"), strings.TrimSpace(out), strings.TrimSpace(string(detail)))
 	}
 	return nil
 }

@@ -20,6 +20,28 @@ func resize(src image.Image, n int) *image.NRGBA {
 	return dst
 }
 
+// cropSquare cuts the source to the bounding box of its visible pixels plus a margin (fraction of the
+// side), as a square: the art's own padding would make small icons look tiny.
+func cropSquare(src image.Image, margin float64) image.Image {
+	b := src.Bounds()
+	minX, minY, maxX, maxY := b.Max.X, b.Max.Y, b.Min.X, b.Min.Y
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			if _, _, _, a := src.At(x, y).RGBA(); a > 0x2000 {
+				minX, maxX = min(minX, x), max(maxX, x+1)
+				minY, maxY = min(minY, y), max(maxY, y+1)
+			}
+		}
+	}
+	side := max(maxX-minX, maxY-minY)
+	side += int(float64(side) * margin * 2)
+	cx, cy := (minX+maxX)/2, (minY+maxY)/2
+	r := image.Rect(cx-side/2, cy-side/2, cx-side/2+side, cy-side/2+side)
+	dst := image.NewNRGBA(image.Rect(0, 0, side, side))
+	draw.Draw(dst, dst.Bounds(), src, r.Min, draw.Src)
+	return dst
+}
+
 func encode(img image.Image) []byte {
 	var b bytes.Buffer
 	if err := png.Encode(&b, img); err != nil {
@@ -39,11 +61,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	src, err := png.Decode(f)
+	full, err := png.Decode(f)
 	f.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
+	src := cropSquare(full, 0.04)
 
 	sizes := []int{16, 24, 32, 48, 64, 128, 256}
 	var hdr bytes.Buffer
