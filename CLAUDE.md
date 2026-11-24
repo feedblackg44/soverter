@@ -19,7 +19,7 @@ go run ./cmd/guidemo -shot <папка>                                    # р�
 
 ## Конфиг и данные
 
-- `%APPDATA%\soverter\presets.toml` — пресеты и `[settings]`: `menu_mode`, `integration` (`classic` по умолчанию | `modern` = меню Windows 11, бета, нужен UAC), `auto_close`, `ffmpeg_path`, `language` (`en`|`ru`, пусто = en), `ui_scale` (проценты, пусто = 100), `menu_title` (пусто = по умолчанию, см. ниже).
+- `%APPDATA%\soverter\presets.toml` — пресеты и `[settings]`: `menu_mode`, `integration` (`classic` по умолчанию | `modern` = меню Windows 11, бета, нужен UAC), `auto_close`, `ffmpeg_path`, `language` (`en`|`ru`, пусто = en), `theme` (`system`|`dark`|`light`, пусто = system; применяется сразу, `gui.SetThemeMode`), `ui_scale` (проценты, пусто = 100), `menu_title` (пусто = по умолчанию, см. ниже).
 - `%APPDATA%\soverter\menu.txt` — для DLL меню Windows 11 (`exe=`, `mode=`, `title=`, строки `id<TAB>name`), пересоздаётся при каждой установке меню.
 - `%LOCALAPPDATA%\soverter\encoders.json` — кэш проверки энкодеров (7 дней). `%USERPROFILE%\.soverter\shellext` — файлы пакета меню.
 - Стартовые пресеты (`preset.Defaults()`) создаются только при отсутствии файла; существующий конфиг владельца не обновляется. Суффиксы по умолчанию: `stretch-fhd`, `stretch-qhd`, `volume-6db`, `30fps`, `720p`, `h265`.
@@ -29,7 +29,7 @@ go run ./cmd/guidemo -shot <папка>                                    # р�
 - `preset` — `presets.toml`, валидация, умолчания, `Settings` (`MenuName()`, `DefaultMenuTitle()`). Пресет либо **структурный** (`[preset.video]`/`[preset.audio]`), либо **старый/сырой** (только `vf`/`af`/`args`). Старые обязаны работать без изменений. У структурных `vf`/`af`/`args` — дополнительные фильтры/аргументы.
 - `cmdbuild` — чистая сборка аргументов ffmpeg и валидация (`Args`, `Validate`, `CheckAvailability`). Всё про флаги энкодеров живёт здесь и покрыто тестами по семействам × режимам.
 - `encoders` — доступность энкодеров: софт по `-encoders`, железо пробным кодированием; кэш в памяти и на диске. В кэше хранится непереведённая причина (`i18n.N`), перевод делается в `Report.Why`.
-- `sizecalc` — битрейт по целевому размеру из ffprobe. `runner` — запуск ffmpeg, два прохода, прогресс, очередь. `ffimport` — парсер «Импорт из команды».
+- `mediainfo` — свойства файла из ffprobe (`Parse` чистый, `Probe` запускает ffprobe): окно «Свойства видео» (`gui/info.go`, подкоманда `info <файл>...`), последний пункт подменю обоих меню (`info=` в `menu.txt`, `shellint.InfoKey`) или кнопка в окне выбора. `sizecalc` — битрейт по целевому размеру из ffprobe. `runner` — запуск ffmpeg, два прохода, прогресс, очередь. `ffimport` — парсер «Импорт из команды».
 - `i18n` — `T`/`Err`/`N`, каталог `en.go`, `SystemLang()` (язык отображения Windows).
 - `gui` — Gio (immediate mode, без WebView и cgo):
   - `theme/` — токены цветов (`DarkPalette`/`LightPalette`, тема по настройке Windows), шрифты: Roboto вшит (`eliasnaur.com/font`), Consolas (или Go Mono) для кода, Segoe Fluent Icons/MDL2 для иконок.
@@ -38,6 +38,8 @@ go run ./cmd/guidemo -shot <папка>                                    # р�
   - `editor.go` — состояние и правила редактора (`editVideo` применяет перекрёстные правила), `editor_view.go` — отрисовка карточек, `preset_list.go` — список пресетов с drag-and-drop, `picker.go`, `progress.go`, `options.go`.
   - Форма конструктора выводится из пресета на каждом кадре; копии есть только у текстовых полей (`loadFields`/`pollFields`). Логику в отрисовку не класть.
   - Настройки языка и масштаба применяются и пишутся в `presets.toml` сразу (`persistUI`), не трогая несохранённые правки пресетов; то же делает «Готово» в «Параметры». «Сохранить» относится только к пресетам.
+- Подпись пункта «Video properties» в меню (`preset.InfoMenuLabel`) следует языку Windows, как и корневой пункт; в самой программе окно и кнопка переводятся языком программы.
+- Заголовок окна (кнопки закрыть/свернуть/развернуть) красится под тему через DWM (`styleChrome` в `gui/sys_windows.go`, цвет = `Palette.Sidebar`, рамка = `Raised`); хэндл приходит событием `Win32ViewEvent`, на Windows 10 цвета игнорируются.
 - `shellint` — классическое меню (реестр HKCU, за интерфейсом для моков). `shellext` — меню Windows 11: подписанный MSIX с C++ COM-библиотекой (`/shellext`), читает `menu.txt`; название корня по умолчанию выбирает сама по языку Windows. `ipc` — single-instance через loopback-порт 47613.
 - `e2e` — тесты на реальном ffmpeg/NVENC; пропускаются, если ffmpeg нет.
 

@@ -4,6 +4,7 @@
 //   mode=submenu|single
 //   title=<name of the root menu item>   (optional; default follows the Windows display language)
 //   <id>\t<name>      (one line per enabled preset, in menu order)
+//   info=<label>       (optional; adds a "video properties" entry at the end of the submenu: exe info <files...>)
 // and builds a submenu with that title. Invoking an entry runs: exe run <id> <files...>
 #define UNICODE
 #define _UNICODE
@@ -28,6 +29,7 @@ struct MenuData {
     std::wstring exe;
     bool single = false;
     std::wstring title;
+    std::wstring info;
     std::vector<Entry> items;
 };
 
@@ -73,6 +75,8 @@ static bool LoadMenu(MenuData &m) {
             m.single = line.substr(5) == "single";
         } else if (line.rfind("title=", 0) == 0) {
             m.title = Widen(line.substr(6));
+        } else if (line.rfind("info=", 0) == 0) {
+            m.info = Widen(line.substr(5));
         } else {
             size_t tab = line.find('\t');
             if (tab == std::string::npos) continue;
@@ -110,7 +114,7 @@ static HRESULT Launch(const std::wstring &exe, const std::wstring &verb, const s
     return S_OK;
 }
 
-enum Kind { ROOT, PRESET };
+enum Kind { ROOT, PRESET, INFO };
 
 class Command : public IExplorerCommand {
     LONG ref_ = 1;
@@ -141,7 +145,10 @@ public:
 
     // IExplorerCommand
     STDMETHODIMP GetTitle(IShellItemArray *, LPWSTR *name) override {
-        return SHStrDupW(kind_ == ROOT ? (menu_.title.empty() ? DefaultTitle() : menu_.title.c_str()) : entry_.name.c_str(), name);
+        const wchar_t *t = entry_.name.c_str();
+        if (kind_ == ROOT) t = menu_.title.empty() ? DefaultTitle() : menu_.title.c_str();
+        else if (kind_ == INFO) t = menu_.info.c_str();
+        return SHStrDupW(t, name);
     }
     // The icon is the first icon group of soverter.exe (the owl); "path,0" is the Explorer convention.
     STDMETHODIMP GetIcon(IShellItemArray *, LPWSTR *icon) override {
@@ -166,11 +173,13 @@ public:
     }
     STDMETHODIMP Invoke(IShellItemArray *items, IBindCtx *) override {
         if (kind_ == PRESET) return Launch(menu_.exe, L"run", entry_.id, items);
+        if (kind_ == INFO) return Launch(menu_.exe, L"info", L"", items);
         if (menu_.single) return Launch(menu_.exe, L"pick", L"", items);
         return S_OK;
     }
     STDMETHODIMP GetFlags(EXPCMDFLAGS *flags) override {
         *flags = (kind_ == ROOT && !menu_.single) ? ECF_HASSUBCOMMANDS : ECF_DEFAULT;
+        if (kind_ == INFO) *flags = ECF_SEPARATORBEFORE;
         return S_OK;
     }
     STDMETHODIMP EnumSubCommands(IEnumExplorerCommand **e) override;
@@ -183,6 +192,8 @@ class Enum : public IEnumExplorerCommand {
 
 public:
     explicit Enum(const MenuData &m) : menu_(m) { InterlockedIncrement(&g_objects); }
+    // presets plus the optional info entry
+    size_t Count() const { return menu_.items.size() + (menu_.info.empty() ? 0 : 1); }
     ~Enum() { InterlockedDecrement(&g_objects); }
     STDMETHODIMP QueryInterface(REFIID riid, void **ppv) override {
         if (riid == IID_IUnknown || riid == IID_IEnumExplorerCommand) {
@@ -201,15 +212,17 @@ public:
     }
     STDMETHODIMP Next(ULONG celt, IExplorerCommand **out, ULONG *fetched) override {
         ULONG n = 0;
-        while (n < celt && idx_ < menu_.items.size()) {
-            out[n++] = new (std::nothrow) Command(PRESET, menu_, menu_.items[idx_++]);
+        while (n < celt && idx_ < Count()) {
+            if (idx_ < menu_.items.size()) out[n++] = new (std::nothrow) Command(PRESET, menu_, menu_.items[idx_]);
+            else out[n++] = new (std::nothrow) Command(INFO, menu_);
+            idx_++;
         }
         if (fetched) *fetched = n;
         return n == celt ? S_OK : S_FALSE;
     }
     STDMETHODIMP Skip(ULONG celt) override {
         idx_ += celt;
-        return idx_ <= menu_.items.size() ? S_OK : S_FALSE;
+        return idx_ <= Count() ? S_OK : S_FALSE;
     }
     STDMETHODIMP Reset() override {
         idx_ = 0;

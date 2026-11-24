@@ -59,8 +59,8 @@ func Version() string {
 	return hex.EncodeToString(h[:8])
 }
 
-// MenuFile renders menu.txt: exe, mode, the menu title and one "id<TAB>name" line per enabled preset.
-func MenuFile(exe string, presets []preset.Preset, mode, title string) []byte {
+// MenuFile renders menu.txt: exe, mode, the menu title, the optional info entry label and one "id<TAB>name" line per enabled preset.
+func MenuFile(exe string, presets []preset.Preset, mode, title, infoLabel string) []byte {
 	if mode != "single" {
 		mode = "submenu"
 	}
@@ -70,6 +70,9 @@ func MenuFile(exe string, presets []preset.Preset, mode, title string) []byte {
 	title = strings.NewReplacer("\r", " ", "\n", " ").Replace(strings.TrimSpace(title))
 	if title != "" {
 		b.WriteString("title=" + title + "\n") // the DLL falls back to "soverter" without it
+	}
+	if infoLabel = strings.NewReplacer("\r", " ", "\n", " ").Replace(strings.TrimSpace(infoLabel)); infoLabel != "" && mode != "single" {
+		b.WriteString("info=" + infoLabel + "\n") // the DLL adds a "video properties" entry at the end of the submenu
 	}
 	for _, p := range preset.Enabled(presets) {
 		name := strings.NewReplacer("\t", " ", "\r", " ", "\n", " ").Replace(p.Name)

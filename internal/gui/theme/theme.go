@@ -30,6 +30,7 @@ type Palette struct {
 	Accent, AccentHover, OnAccent color.NRGBA
 	AccentWash                    color.NRGBA // translucent accent for selection
 	Danger, Success, Warning      color.NRGBA
+	Dark                          bool // dark variant (also tells the title bar which glyph colour to use)
 }
 
 func rgb(h uint32) color.NRGBA {
@@ -48,7 +49,7 @@ func DarkPalette() Palette {
 		Border: rgba(0xFFFFFF, 0x12), BorderStrong: rgba(0xFFFFFF, 0x26),
 		Text: rgb(0xE6E8F0), TextDim: rgb(0xB6BBCE), TextMuted: rgb(0x80859A),
 		Accent: rgb(0x6E7BFF), AccentHover: rgb(0x8590FF), OnAccent: rgb(0x0B0D1F), AccentWash: rgba(0x6E7BFF, 0x26),
-		Danger: rgb(0xFF6B6B), Success: rgb(0x4ADE9A), Warning: rgb(0xF5B84B),
+		Danger: rgb(0xFF6B6B), Success: rgb(0x4ADE9A), Warning: rgb(0xF5B84B), Dark: true,
 	}
 }
 

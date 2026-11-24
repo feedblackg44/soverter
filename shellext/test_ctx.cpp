@@ -23,7 +23,7 @@ int wmain(int argc, wchar_t **argv) {
     IEnumExplorerCommand *en = nullptr;
     if (SUCCEEDED(root->EnumSubCommands(&en))) {
         IExplorerCommand *c; ULONG n;
-        while (en->Next(1, &c, &n) == S_OK && n == 1) { c->GetTitle(nullptr, &t); wprintf(L"  item: %s\n", t); c->Release(); }
+        while (en->Next(1, &c, &n) == S_OK && n == 1) { c->GetTitle(nullptr, &t); EXPCMDFLAGS cf; c->GetFlags(&cf); wprintf(L"  item: %ls (flags=%d)\n", t, (int)cf); c->Release(); }
         en->Release();
     }
     root->Release(); f->Release();

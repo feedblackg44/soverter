@@ -22,7 +22,9 @@ type PickerView struct {
 	Presets []preset.Preset
 	OnPick  func(preset.Preset)
 	OnClose func()
+	OnInfo  func() // if set, a "video properties" button is shown
 
+	info   Btn
 	search widget.Editor
 	list   widget.List
 	rows   []widget.Clickable
@@ -132,6 +134,18 @@ func (v *PickerView) Layout(gtx layout.Context, th *theme.Theme) layout.Dimensio
 					return v.row(gtx, th, items, i)
 				})
 			}),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				if v.OnInfo == nil {
+					return layout.Dimensions{}
+				}
+				if v.info.Clicked(gtx) {
+					v.OnInfo()
+				}
+				v.info.Icon = IcInfo
+				return layout.Inset{Top: 8}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					return v.info.Layout(gtx, th, i18n.T("Свойства видео"), Ghost)
+				})
+			}),
 		)
 	})
 }
@@ -184,7 +198,7 @@ func (v *PickerView) row(gtx layout.Context, th *theme.Theme, items []preset.Pre
 }
 
 // OpenPicker opens the preset chooser; onPick runs (in the UI goroutine) before the window closes.
-func OpenPicker(presets []preset.Preset, onPick func(preset.Preset)) *Win {
+func OpenPicker(presets []preset.Preset, onPick func(preset.Preset), onInfo func()) *Win {
 	v := &PickerView{Presets: presets}
 	var w *Win
 	v.OnPick = func(p preset.Preset) {
@@ -192,6 +206,9 @@ func OpenPicker(presets []preset.Preset, onPick func(preset.Preset)) *Win {
 		w.Close()
 	}
 	v.OnClose = func() { w.Close() }
+	if onInfo != nil {
+		v.OnInfo = onInfo // the properties open in their own window; the picker stays
+	}
 	w = Open(i18n.T("Выберите пресет"), 460, 480, v)
 	return w
 }

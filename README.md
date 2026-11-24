@@ -77,10 +77,18 @@ administrator rights (one UAC prompt) to trust that certificate; see [Code signi
 | `soverter` / `soverter edit` | preset editor |
 | `soverter run <id> <file>...` | apply a preset; progress window with a queue |
 | `soverter pick <file>...` | preset picker window |
+| `soverter info <file>...` | video properties window (codec, resolution, fps, bitrate, size, audio) |
 | `soverter install` / `uninstall [--cert]` | register / remove the menu (and the trusted certificate) |
 | `soverter list` | list presets |
 
 The first run creates `%APPDATA%\soverter\presets.toml` with starter presets.
+
+## Video properties
+
+Not sure which preset fits? The last item of the Soverter submenu is **Video properties** (in the single-item mode it is a button
+in the picker window). It opens a window with what ffprobe reports about the file: container, size, duration, overall bitrate,
+and for every video and audio stream the codec and profile, resolution and aspect ratio, frame rate, bitrate, pixel format and bit
+depth, HDR, channels, sample rate, language. **Copy** puts the same text on the clipboard. Several selected files give one card each.
 
 ## Preset builder
 
@@ -127,10 +135,10 @@ QSV `-global_quality N -preset …`; AMF `-rc cqp -qp_i N -qp_p N [-qp_b N] -qua
 NVENC `-rc vbr -b:v NM -maxrate 1.5·NM`; AMF `-rc vbr_peak -b:v NM -maxrate 1.5·NM`; QSV `-b:v NM -maxrate 1.5·NM`.
 The AMF and QSV flags follow the documentation and have not been verified on hardware.
 
-## Language, scale, menu item name
+## Language, theme, scale, menu item name
 
-- **Language and scale.** The interface is English by default; the language (English / Russian) and the scale (100–200%) are
-  changed in **Settings** and apply immediately (stored in `[settings]` as `language`, `ui_scale`). The scale can also be changed
+- **Language, theme and scale.** The interface is English by default; the language (English / Russian), the theme (follow Windows / dark / light) and the scale (100–200%) are
+  changed in **Settings** and apply immediately (stored in `[settings]` as `language`, `theme`, `ui_scale`). The scale can also be changed
   with `Ctrl+=`, `Ctrl+-`, `Ctrl+0` in any window, handy on QHD/4K when Windows scaling can't be raised. The Roboto font is embedded.
 - **Menu item name.** By default the Explorer item reads like "Edit with Notepad++": `Convert with Soverter`, or
   `Обработать с помощью Soverter` when the Windows display language is Russian (the app's own language does not matter).

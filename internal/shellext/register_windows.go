@@ -59,7 +59,7 @@ func powershell(script string) (string, error) {
 	return strings.TrimSpace(out.String()), err
 }
 
-func writeMenu(exe string, presets []preset.Preset, mode, title string) error {
+func writeMenu(exe string, presets []preset.Preset, mode, title, infoLabel string) error {
 	dir, err := preset.Dir()
 	if err != nil {
 		return err
@@ -67,7 +67,7 @@ func writeMenu(exe string, presets []preset.Preset, mode, title string) error {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return err
 	}
-	return os.WriteFile(filepath.Join(dir, "menu.txt"), MenuFile(exe, presets, mode, title), 0o644)
+	return os.WriteFile(filepath.Join(dir, "menu.txt"), MenuFile(exe, presets, mode, title, infoLabel), 0o644)
 }
 
 // CertTrusted reports whether the embedded self-signed certificate is in LocalMachine\TrustedPeople.
@@ -144,11 +144,11 @@ func UntrustCert() error {
 }
 
 // Install writes menu.txt and (if needed) registers the package. Safe to call after every preset change.
-func Install(exe string, presets []preset.Preset, mode, title string) error {
+func Install(exe string, presets []preset.Preset, mode, title, infoLabel string) error {
 	if len(msixBytes()) == 0 {
 		return errors.New(i18n.T("в сборке нет пакета меню Windows 11: запустите shellext\\package.ps1 и пересоберите exe"))
 	}
-	if err := writeMenu(exe, presets, mode, title); err != nil {
+	if err := writeMenu(exe, presets, mode, title, infoLabel); err != nil {
 		return err
 	}
 	dir, err := WorkDir()
