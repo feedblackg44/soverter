@@ -922,7 +922,8 @@ func (e *Editor) menuDialog() {
 			}
 			// Only builds with an embedded self-signed certificate have one to remove; a package signed by a
 			// trusted authority needs no trust step at all.
-			if e.hooks.Untrust != nil {
+			// It is also hidden unless the Windows 11 menu is the chosen integration: the certificate only matters there.
+			if e.hooks.Untrust != nil && e.cfg.Settings.Integration == "modern" {
 				rows = append(rows, func(gtx C) D {
 					return st.bCert.Layout(gtx, th, i18n.T("Удалить сертификат из доверенных (UAC)"), Ghost)
 				})
