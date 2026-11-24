@@ -201,7 +201,7 @@ func (e *Editor) topBar(gtx C, th *Th) D {
 					g = gtx.Disabled()
 				}
 				return layout.Flex{Alignment: layout.Middle}.Layout(g,
-					layout.Rigid(func(gtx C) D { return e.bRevert.Layout(gtx, th, i18n.T("Сбросить"), Ghost) }),
+					layout.Rigid(func(gtx C) D { return e.bRevert.Layout(gtx, th, i18n.T("Отменить правки"), Ghost) }),
 					layout.Rigid(layout.Spacer{Width: 8}.Layout),
 					layout.Rigid(func(gtx C) D { return e.bSave.Layout(gtx, th, i18n.T("Сохранить"), Primary) }),
 				)

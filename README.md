@@ -66,9 +66,9 @@
 
 ## Install
 
-Download the zip from the Releases page, unzip it and run `soverter.exe`. In the editor click **Save** (or **Windows menu → Install from saved presets**);
-the menu is registered automatically. If you move `soverter.exe` later, press **Save** again (the path to the exe
-is stored in the menu registration).
+Download the zip from the Releases page, unzip it and run `soverter.exe`. If the menu is not installed yet, the app offers to install it
+on the first start; you can also do it any time with **Windows menu → Install from saved presets**. If you move `soverter.exe` later, run
+that command again (the path to the exe is stored in the menu registration). After that the menu follows your presets: **Save** refreshes it.
 
 By default the classic menu is used: it needs no administrator rights (on Windows 11 it lives under "Show more options", on
 Windows 10 it is the regular menu). The new Windows 11 menu is an opt-in **beta**: choose **Settings → Explorer integration →

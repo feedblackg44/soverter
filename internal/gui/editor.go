@@ -595,7 +595,7 @@ func (e *Editor) installMenu() {
 }
 
 func (e *Editor) revert() {
-	e.confirm(i18n.T("Сбросить правки"), i18n.T("Отбросить все несохранённые изменения и вернуть пресеты из файла presets.toml?"), i18n.T("Сбросить"), true, func() {
+	e.confirm(i18n.T("Отменить правки"), i18n.T("Отбросить все несохранённые изменения и вернуть пресеты из файла presets.toml?"), i18n.T("Отбросить"), true, func() {
 		c, err := preset.Load(e.path)
 		if err != nil {
 			e.info(i18n.T("Не удалось загрузить"), err.Error(), true)
