@@ -45,6 +45,7 @@ type Settings struct {
 	Integration string `toml:"integration"` // "classic" (registry verbs, default) | "modern" (Windows 11 menu, beta)
 	AutoClose   bool   `toml:"auto_close"`
 	FFmpegPath  string `toml:"ffmpeg_path,omitempty"`
+	Theme       string `toml:"theme,omitempty"`             // "system" (default, follows Windows) | "dark" | "light"
 	Language    string `toml:"language,omitempty"`          // "en" (default) | "ru"
 	UIScale     int    `toml:"ui_scale,omitempty,omitzero"` // interface scale in percent (0 = 100)
 	MenuTitle   string `toml:"menu_title,omitempty"`        // name of the Explorer menu item (default: the application name)

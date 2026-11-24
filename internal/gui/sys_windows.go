@@ -99,21 +99,25 @@ func colorRef(c color.NRGBA) uint32 { return uint32(c.R) | uint32(c.G)<<8 | uint
 // styleChrome tints the native title bar (with the minimise, maximise and close buttons) to match the app: the
 // caption takes the sidebar colour, a shade away from the window background so the bar reads as a frame rather
 // than melting into the content, and the border and caption text follow the palette. The window handle arrives
-// as a Win32ViewEvent right after the window is created.
-func styleChrome(ev event.Event, p theme.Palette) {
-	v, ok := ev.(app.Win32ViewEvent)
-	if !ok || !v.Valid() {
-		return
-	}
+// as a Win32ViewEvent right after the window is created (see windowHandle).
+func styleChrome(hwnd uintptr, p theme.Palette) {
 	dark := uint32(0)
-	if !systemLight() {
+	if p.Dark {
 		dark = 1
 	}
 	set := func(attr, val uint32) {
-		syscall.NewLazyDLL("dwmapi.dll").NewProc("DwmSetWindowAttribute").Call(v.HWND, uintptr(attr), uintptr(unsafe.Pointer(&val)), 4)
+		syscall.NewLazyDLL("dwmapi.dll").NewProc("DwmSetWindowAttribute").Call(hwnd, uintptr(attr), uintptr(unsafe.Pointer(&val)), 4)
 	}
 	set(dwmUseImmersiveDarkMode, dark) // light glyphs on a dark bar and vice versa
 	set(dwmCaptionColor, colorRef(p.Sidebar))
 	set(dwmBorderColor, colorRef(p.Raised))
 	set(dwmTextColor, colorRef(p.TextDim))
+}
+
+// windowHandle returns the HWND carried by a Win32ViewEvent, or 0 for any other event.
+func windowHandle(ev event.Event) uintptr {
+	if v, ok := ev.(app.Win32ViewEvent); ok && v.Valid() {
+		return v.HWND
+	}
+	return 0
 }

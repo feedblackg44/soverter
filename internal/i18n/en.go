@@ -154,6 +154,10 @@ func init() {
 
 		// ---- settings / menu dialogs ----
 		"Язык":                "Language",
+		"Тема":                "Theme",
+		"Как в системе":       "Follow system",
+		"Тёмная":              "Dark",
+		"Светлая":             "Light",
 		"Настройки сохранены": "Settings saved",
 		"Название пункта в меню Explorer":                       "Explorer menu item name",
 		"Масштаб интерфейса":                                    "Interface scale",

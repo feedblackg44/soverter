@@ -135,10 +135,10 @@ QSV `-global_quality N -preset …`; AMF `-rc cqp -qp_i N -qp_p N [-qp_b N] -qua
 NVENC `-rc vbr -b:v NM -maxrate 1.5·NM`; AMF `-rc vbr_peak -b:v NM -maxrate 1.5·NM`; QSV `-b:v NM -maxrate 1.5·NM`.
 The AMF and QSV flags follow the documentation and have not been verified on hardware.
 
-## Language, scale, menu item name
+## Language, theme, scale, menu item name
 
-- **Language and scale.** The interface is English by default; the language (English / Russian) and the scale (100–200%) are
-  changed in **Settings** and apply immediately (stored in `[settings]` as `language`, `ui_scale`). The scale can also be changed
+- **Language, theme and scale.** The interface is English by default; the language (English / Russian), the theme (follow Windows / dark / light) and the scale (100–200%) are
+  changed in **Settings** and apply immediately (stored in `[settings]` as `language`, `theme`, `ui_scale`). The scale can also be changed
   with `Ctrl+=`, `Ctrl+-`, `Ctrl+0` in any window, handy on QHD/4K when Windows scaling can't be raised. The Roboto font is embedded.
 - **Menu item name.** By default the Explorer item reads like "Edit with Notepad++": `Convert with Soverter`, or
   `Обработать с помощью Soverter` when the Windows display language is Russian (the app's own language does not matter).

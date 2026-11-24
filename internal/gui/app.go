@@ -36,9 +36,7 @@ type Win struct {
 }
 
 var (
-	themeOnce sync.Once
-	theTheme  *theme.Theme
-	openWins  atomic.Int32
+	openWins atomic.Int32
 
 	winMu sync.Mutex
 	wins  = map[*Win]struct{}{}
@@ -54,6 +52,7 @@ var scaleSteps = []int{75, 90, 100, 110, 125, 150, 175, 200, 250}
 // Configure applies the language and scale from the settings (call before opening windows).
 func Configure(s preset.Settings) {
 	i18n.SetLang(s.Language)
+	themeMode.Store(s.Theme)
 	if s.UIScale > 0 {
 		uiScale.Store(int32(clampScale(s.UIScale)))
 	}
@@ -113,16 +112,68 @@ func InvalidateAll() {
 	}
 }
 
-// Theme returns the shared theme (dark unless Windows is set to light mode).
+// Theme modes of the "theme" setting.
+const (
+	ThemeSystem = "system"
+	ThemeDark   = "dark"
+	ThemeLight  = "light"
+)
+
+var (
+	themeMode atomic.Value // string
+	curTheme  atomic.Pointer[theme.Theme]
+	themeMu   sync.Mutex
+)
+
+// paletteFor resolves a mode to a palette; anything but "dark"/"light" follows the Windows app theme.
+func paletteFor(mode string) theme.Palette {
+	switch mode {
+	case ThemeDark:
+		return theme.DarkPalette()
+	case ThemeLight:
+		return theme.LightPalette()
+	}
+	if systemLight() {
+		return theme.LightPalette()
+	}
+	return theme.DarkPalette()
+}
+
+// Theme returns the shared theme. Windows fetch it every frame, so SetThemeMode takes effect at once.
 func Theme() *theme.Theme {
-	themeOnce.Do(func() {
-		p := theme.DarkPalette()
-		if systemLight() {
-			p = theme.LightPalette()
-		}
-		theTheme = theme.New(p)
-	})
-	return theTheme
+	if t := curTheme.Load(); t != nil {
+		return t
+	}
+	themeMu.Lock()
+	defer themeMu.Unlock()
+	if t := curTheme.Load(); t != nil {
+		return t
+	}
+	m, _ := themeMode.Load().(string)
+	t := theme.New(paletteFor(m))
+	curTheme.Store(t)
+	return t
+}
+
+// ThemeMode is the current mode setting ("system" when unset).
+func ThemeMode() string {
+	if m, _ := themeMode.Load().(string); m == ThemeDark || m == ThemeLight {
+		return m
+	}
+	return ThemeSystem
+}
+
+// SetThemeMode switches the theme of every open window (the fonts are shared, only the palette changes).
+func SetThemeMode(mode string) {
+	themeMu.Lock()
+	themeMode.Store(mode)
+	if old := curTheme.Load(); old != nil {
+		nt := *old
+		nt.P = paletteFor(mode)
+		curTheme.Store(&nt)
+	}
+	themeMu.Unlock()
+	InvalidateAll()
 }
 
 // Main runs the GUI event loop; it must be called from the main goroutine.
@@ -162,8 +213,9 @@ func (w *Win) Close() {
 }
 
 func (w *Win) loop(v View) {
-	th := Theme()
 	var ops op.Ops
+	var hwnd uintptr
+	var styled *theme.Theme
 	for {
 		switch e := w.W.Event().(type) {
 		case app.DestroyEvent:
@@ -185,11 +237,18 @@ func (w *Win) loop(v View) {
 			gtx.Metric.PxPerDp *= s
 			gtx.Metric.PxPerSp *= s
 			w.scaleKeys(gtx)
+			th := Theme()
+			if th != styled && hwnd != 0 { // first frame or the theme changed: retint the title bar
+				styleChrome(hwnd, th.P)
+				styled = th
+			}
 			paint.FillShape(gtx.Ops, th.P.Bg, clip.Rect{Max: gtx.Constraints.Max}.Op())
 			v.Layout(gtx, th)
 			e.Frame(gtx.Ops)
 		default:
-			styleChrome(e, th.P) // the native window handle arrives as a platform event
+			if h := windowHandle(e); h != 0 { // the native window handle arrives as a platform event
+				hwnd, styled = h, nil
+			}
 		}
 	}
 }

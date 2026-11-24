@@ -798,6 +798,7 @@ type settingsState struct {
 	title             *Field
 	sInt, sMode       Seg
 	sLang, sScale     Seg
+	sTheme            Seg
 	bRecheck          Btn
 }
 
@@ -823,6 +824,13 @@ func (e *Editor) settingsDialog() {
 					v, d := st.sLang.Layout(gtx, th, []Opt{{Val: "en", Label: "English"}, {Val: "ru", Label: "Русский"}}, i18n.Lang())
 					if v != "" && v != i18n.Lang() {
 						e.setLanguage(v)
+					}
+					return d
+				}),
+				Labeled(th, i18n.T("Тема"), func(gtx C) D {
+					v, d := st.sTheme.Layout(gtx, th, []Opt{{Val: ThemeSystem, Label: i18n.T("Как в системе")}, {Val: ThemeDark, Label: i18n.T("Тёмная")}, {Val: ThemeLight, Label: i18n.T("Светлая")}}, ThemeMode())
+					if v != "" && v != ThemeMode() {
+						e.setTheme(v)
 					}
 					return d
 				}),
@@ -1031,4 +1039,10 @@ func (e *Editor) applySettings(st *settingsState) {
 		return
 	}
 	e.setToast(i18n.T("Настройки сохранены"))
+}
+
+// setTheme switches the theme of all windows at once and stores it (like the language, not tied to «Сохранить»).
+func (e *Editor) setTheme(mode string) {
+	SetThemeMode(mode)
+	e.persistUI(func(s *preset.Settings) { s.Theme = mode })
 }

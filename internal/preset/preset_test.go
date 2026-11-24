@@ -199,3 +199,19 @@ func TestMenuNameDefaultsAndOverride(t *testing.T) {
 		t.Fatalf("override %q", got)
 	}
 }
+
+func TestThemeSettingRoundTrip(t *testing.T) {
+	c := Defaults()
+	c.Settings.Theme = "light"
+	data, err := Encode(c)
+	if err != nil {
+		t.Fatal(err)
+	}
+	back, err := Parse(data)
+	if err != nil || back.Settings.Theme != "light" {
+		t.Fatalf("theme lost: %v %q", err, back.Settings.Theme)
+	}
+	if d, _ := Encode(Defaults()); strings.Contains(string(d), "theme") {
+		t.Fatal("unset theme must not be written")
+	}
+}
