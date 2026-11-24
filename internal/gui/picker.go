@@ -207,10 +207,7 @@ func OpenPicker(presets []preset.Preset, onPick func(preset.Preset), onInfo func
 	}
 	v.OnClose = func() { w.Close() }
 	if onInfo != nil {
-		v.OnInfo = func() {
-			onInfo()
-			w.Close()
-		}
+		v.OnInfo = onInfo // the properties open in their own window; the picker stays
 	}
 	w = Open(i18n.T("Выберите пресет"), 460, 480, v)
 	return w
