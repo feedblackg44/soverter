@@ -14,7 +14,7 @@ param(
     [string]$PfxPassword,
     [string]$TimestampUrl,
     [string]$Version = '1.0.0.0',
-    # CI mode: build the package unsigned for an external signing service (SignPath). -Publisher must equal the
+    # Build the package unsigned for an external signing service. -Publisher must equal the
     # Subject of the certificate the service signs with. No .cer is produced, so users get no trust step.
     [switch]$Unsigned,
     [string]$Publisher

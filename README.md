@@ -166,7 +166,7 @@ unavailable and the classic menu is used.
 
 A self-signed build asks you to trust its certificate once: on the first menu install the app adds the public part to
 `LocalMachine\TrustedPeople` (**one UAC prompt**, no developer mode). Remove it with **Windows menu → Remove certificate from trusted**
-or `soverter uninstall --cert`. Builds that embed no certificate (officially signed releases) have no such step.
+or `soverter uninstall --cert`. Builds that embed no certificate (signed with a CA certificate) have no such step.
 
 The menu library reads the list of presets from `%APPDATA%\soverter\menu.txt`, so editing presets does not need re-registration, just **Save**.
 
@@ -177,8 +177,8 @@ The menu library reads the list of presets from `%APPDATA%\soverter\menu.txt`, s
 .\release.ps1 -Thumbprint <sha1> -TimestampUrl http://timestamp.digicert.com   # with a real code-signing certificate
 ```
 
-`dist\` is not committed. Official releases are built and signed by GitHub Actions (`.github/workflows/release.yml`), see below.
-For an external signing service the package can be built unsigned: `.\shellext\package.ps1 -Unsigned -Publisher '<certificate Subject>'`.
+`dist\` is not committed. For an external signing service the package can be built unsigned:
+`.\shellext\package.ps1 -Unsigned -Publisher '<certificate Subject>'`.
 
 ### Icons
 
@@ -194,14 +194,11 @@ The Roboto font (Apache-2.0), Gio (MIT/Unlicense) and the other dependencies are
 
 ## Code signing policy
 
-Release binaries (`soverter.exe` and the embedded Windows 11 menu package) are built from this repository by
-the GitHub Actions workflow `.github/workflows/release.yml` and signed through [SignPath](https://signpath.org);
-the free code signing certificate is provided by the [SignPath Foundation](https://signpath.org/foundation).
-Release 0.1.0 predates this setup and is self-signed; the signed release workflow is being set up.
+The Windows 11 menu package embedded in `soverter.exe` is signed with a self-signed certificate (`CN=soverter`), and the exe
+itself is not code-signed yet. On the first menu install the app asks you to trust that certificate once (one UAC prompt);
+without it the classic menu is used. A certificate from a public CA is planned once the project has a wider audience.
 
-- **Roles.** The maintainer ([feedblackg44](https://github.com/feedblackg44)) is the author, reviewer and approver of every
-  signing request. Only tagged releases (`v*`) from the `main` branch are signed.
 - **Privacy.** Soverter does not collect or transmit any data. It runs `ffmpeg` locally on the files you choose; it makes
   no network connections (a loopback port, `127.0.0.1:47613`, only keeps a single instance running).
-- **Local builds.** A build from source is not signed by SignPath. For the Windows 11 menu such a build uses a
-  self-signed certificate that you trust once (one UAC prompt); without the package, the classic menu is used.
+- **Local builds.** A build from source uses its own self-signed certificate, trusted the same way; without the package,
+  the classic menu is used.
