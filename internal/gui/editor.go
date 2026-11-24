@@ -639,7 +639,23 @@ func (e *Editor) test() {
 
 // ---- dialogs -------------------------------------------------------------------------------------------------
 
-func (e *Editor) closeDlg() { e.dlg = nil }
+func (e *Editor) closeDlg() {
+	e.dlg = nil
+	e.resetHover()
+}
+
+// resetHover forgets the "pointer is over me" state of the buttons under a dialog. While a dialog is open the
+// layer below is laid out disabled and never sees the pointer leave, so whichever button the pointer was on when
+// the dialog opened (usually the one that opened it) would stay highlighted after the dialog closes.
+func (e *Editor) resetHover() {
+	e.bAdd, e.bDup, e.bDel, e.bUp, e.bDown = IconBtn{}, IconBtn{}, IconBtn{}, IconBtn{}, IconBtn{}
+	e.bSave, e.bTest, e.bRevert = Btn{}, Btn{}, Btn{}
+	e.bMenu, e.bSet, e.bImport = Btn{}, Btn{}, Btn{}
+	e.bConvert, e.bCopy = Btn{}, Btn{}
+	for i := range e.rows {
+		e.rows[i].click = widget.Clickable{}
+	}
+}
 
 func (e *Editor) confirm(title, msg, ok string, danger bool, do func()) {
 	kind := Primary
