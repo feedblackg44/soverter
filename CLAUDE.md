@@ -29,7 +29,7 @@ go run ./cmd/guidemo -shot <папка>                                    # р�
 - `preset` — `presets.toml`, валидация, умолчания, `Settings` (`MenuName()`, `DefaultMenuTitle()`). Пресет либо **структурный** (`[preset.video]`/`[preset.audio]`), либо **старый/сырой** (только `vf`/`af`/`args`). Старые обязаны работать без изменений. У структурных `vf`/`af`/`args` — дополнительные фильтры/аргументы.
 - `cmdbuild` — чистая сборка аргументов ffmpeg и валидация (`Args`, `Validate`, `CheckAvailability`). Всё про флаги энкодеров живёт здесь и покрыто тестами по семействам × режимам.
 - `encoders` — доступность энкодеров: софт по `-encoders`, железо пробным кодированием; кэш в памяти и на диске. В кэше хранится непереведённая причина (`i18n.N`), перевод делается в `Report.Why`.
-- `sizecalc` — битрейт по целевому размеру из ffprobe. `runner` — запуск ffmpeg, два прохода, прогресс, очередь. `ffimport` — парсер «Импорт из команды».
+- `mediainfo` — свойства файла из ffprobe (`Parse` чистый, `Probe` запускает ffprobe): окно «Свойства видео» (`gui/info.go`, подкоманда `info <файл>...`), последний пункт подменю обоих меню (`info=` в `menu.txt`, `shellint.InfoKey`) или кнопка в окне выбора. `sizecalc` — битрейт по целевому размеру из ffprobe. `runner` — запуск ffmpeg, два прохода, прогресс, очередь. `ffimport` — парсер «Импорт из команды».
 - `i18n` — `T`/`Err`/`N`, каталог `en.go`, `SystemLang()` (язык отображения Windows).
 - `gui` — Gio (immediate mode, без WebView и cgo):
   - `theme/` — токены цветов (`DarkPalette`/`LightPalette`, тема по настройке Windows), шрифты: Roboto вшит (`eliasnaur.com/font`), Consolas (или Go Mono) для кода, Segoe Fluent Icons/MDL2 для иконок.

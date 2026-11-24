@@ -87,15 +87,15 @@ func TestMenuFile(t *testing.T) {
 		{ID: "off", Name: "Off", Disabled: true},
 		{ID: "b", Name: "Second"},
 	}
-	got := string(MenuFile(`C:\Tools\vid preset.exe`, ps, "submenu", ""))
+	got := string(MenuFile(`C:\Tools\vid preset.exe`, ps, "submenu", "", ""))
 	want := "exe=C:\\Tools\\vid preset.exe\nmode=submenu\na\tПервый пункт\nb\tSecond\n"
 	if got != want {
 		t.Fatalf("got %q", got)
 	}
-	if !strings.Contains(string(MenuFile("x", nil, "single", "")), "mode=single") {
+	if !strings.Contains(string(MenuFile("x", nil, "single", "", "")), "mode=single") {
 		t.Fatal("single mode")
 	}
-	if s := string(MenuFile("x", nil, "submenu", " My videos\n")); !strings.Contains(s, "title=My videos\n") {
+	if s := string(MenuFile("x", nil, "submenu", " My videos\n", "")); !strings.Contains(s, "title=My videos\n") {
 		t.Fatalf("title line missing or not sanitized: %q", s)
 	}
 }
@@ -107,7 +107,7 @@ func TestLiveRegister(t *testing.T) {
 		t.Skip("set VP_LIVE=1")
 	}
 	exe, _ := os.Executable()
-	if err := Install(exe, preset.Defaults().Presets, "submenu", ""); err != nil {
+	if err := Install(exe, preset.Defaults().Presets, "submenu", "", ""); err != nil {
 		t.Fatal(err)
 	}
 	if !Registered() {
@@ -118,5 +118,17 @@ func TestLiveRegister(t *testing.T) {
 	}
 	if Registered() {
 		t.Fatal("still registered")
+	}
+}
+
+func TestMenuFileInfoLine(t *testing.T) {
+	if s := string(MenuFile("x", nil, "submenu", "", "Video properties\n")); !strings.Contains(s, "info=Video properties\n") {
+		t.Fatalf("info line missing: %q", s)
+	}
+	if s := string(MenuFile("x", nil, "single", "", "Video properties")); strings.Contains(s, "info=") {
+		t.Fatalf("single mode has no submenu, so no info line: %q", s)
+	}
+	if s := string(MenuFile("x", nil, "submenu", "", "")); strings.Contains(s, "info=") {
+		t.Fatalf("empty label must not write the line: %q", s)
 	}
 }

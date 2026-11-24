@@ -33,6 +33,7 @@ const (
 	IcMenu     = ''
 	IcWarning  = ''
 	IcError    = ''
+	IcInfo     = ''
 	IcFolder   = ''
 )
 

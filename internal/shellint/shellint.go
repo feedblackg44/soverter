@@ -46,7 +46,12 @@ type Registry interface {
 // Entry is one registry value write.
 type Entry struct{ Key, Name, Value string }
 
-func planRoot(root, exe string, presets []preset.Preset, mode, title string) []Entry {
+// InfoKey is the submenu key of the "video properties" entry; the "~" prefix sorts it after the numbered presets.
+const InfoKey = "~info"
+
+// infoLabel, if not empty, adds a "video properties" entry (`soverter info`) at the end of the submenu.
+// In "single" mode the picker window offers it instead.
+func planRoot(root, exe string, presets []preset.Preset, mode, title, infoLabel string) []Entry {
 	q := `"` + exe + `"`
 	if title == "" {
 		title = preset.DefaultMenuTitle()
@@ -64,25 +69,32 @@ func planRoot(root, exe string, presets []preset.Preset, mode, title string) []E
 			Entry{k + `\command`, "", q + " run " + p.ID + ` "%1"`},
 		)
 	}
+	if infoLabel != "" {
+		k := root + `\shell\` + InfoKey
+		es = append(es,
+			Entry{k, "MUIVerb", infoLabel},
+			Entry{k + `\command`, "", q + ` info "%1"`},
+		)
+	}
 	return es
 }
 
 // Plan returns the registry writes for the given presets.
 // mode is "submenu" (default) or "single".
-func Plan(exe string, presets []preset.Preset, mode, title string) []Entry {
+func Plan(exe string, presets []preset.Preset, mode, title, infoLabel string) []Entry {
 	var es []Entry
 	for _, e := range Extensions {
-		es = append(es, planRoot(RootFor(e), exe, presets, mode, title)...)
+		es = append(es, planRoot(RootFor(e), exe, presets, mode, title, infoLabel)...)
 	}
 	return es
 }
 
 // Install recreates the menu from scratch (idempotent).
-func Install(r Registry, exe string, presets []preset.Preset, mode, title string) error {
+func Install(r Registry, exe string, presets []preset.Preset, mode, title, infoLabel string) error {
 	if err := Uninstall(r); err != nil {
 		return err
 	}
-	for _, e := range Plan(exe, presets, mode, title) {
+	for _, e := range Plan(exe, presets, mode, title, infoLabel) {
 		if err := r.SetString(e.Key, e.Name, e.Value); err != nil {
 			return fmt.Errorf("%s: %w", e.Key, err)
 		}

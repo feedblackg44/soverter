@@ -33,6 +33,11 @@ func main() {
 			fatal(i18n.T("использование: soverter pick <файл>..."))
 		}
 		cmdPick(args)
+	case "info":
+		if len(args) < 1 {
+			fatal(i18n.T("использование: soverter info <файл>..."))
+		}
+		cmdInfo(args)
 	case "install":
 		attachConsole()
 		cfg := mustLoad()
@@ -52,7 +57,7 @@ func main() {
 			fmt.Printf("%-14s %-28s .%s.%s\n", p.ID, p.Name, p.Suffix, p.Ext)
 		}
 	default:
-		fatal(i18n.T("неизвестная команда: ") + cmd + i18n.T("\nдоступно: edit, run, pick, install, uninstall, list"))
+		fatal(i18n.T("неизвестная команда: ") + cmd + i18n.T("\nдоступно: edit, run, pick, info, install, uninstall, list"))
 	}
 }
 
@@ -137,6 +142,20 @@ func cmdRun(id string, files []string) {
 	gui.Main()
 }
 
+// cmdInfo opens the video properties window (ffprobe) for the files.
+func cmdInfo(files []string) {
+	cfg := mustLoad()
+	tools, err := runner.FindTools(cfg.Settings.FFmpegPath)
+	if err != nil {
+		fatal(err.Error())
+	}
+	if tools.FFprobe == "" {
+		fatal(i18n.T("ffprobe не найден рядом с ffmpeg и в PATH"))
+	}
+	gui.OpenInfo(tools.FFprobe, files)
+	gui.Main()
+}
+
 func cmdPick(files []string) {
 	cfg := mustLoad()
 	s := &session{cfg: cfg}
@@ -150,6 +169,15 @@ func cmdPick(files []string) {
 			fatal(err.Error())
 		}
 		serve(l, cfg, s)
+	}, func() { // "video properties" in the single-item menu mode
+		tools, err := runner.FindTools(cfg.Settings.FFmpegPath)
+		if err != nil {
+			fatal(err.Error())
+		}
+		if tools.FFprobe == "" {
+			fatal(i18n.T("ffprobe не найден рядом с ffmpeg и в PATH"))
+		}
+		gui.OpenInfo(tools.FFprobe, files)
 	})
 	gui.Main()
 }
