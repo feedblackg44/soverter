@@ -13,14 +13,14 @@ go run ./cmd/guidemo -shot <папка>                                    # р�
 .\release.ps1 -Version 1.0.0                                           # релиз: пакет меню + exe + zip в dist\ (для загрузки в GitHub Releases)
 ```
 
-Подкоманды exe: `edit` (по умолчанию), `run <id> <файл>...`, `pick`, `install`, `uninstall [--cert]`, `list`. GUI-сборка без консоли: вывод `list`/`install` виден только из обычного терминала (AttachConsole), из git-bash не виден.
+Подкоманды exe: `edit` (по умолчанию), `run <id> <файл>...`, `pick`, `info <файл>...`, `install`, `uninstall [--cert]`, `list`. GUI-сборка без консоли: вывод `list`/`install` виден только из обычного терминала (AttachConsole), из git-bash не виден.
 
 После правок кода пересобирайте `soverter.exe` в корне репозитория: владелец запускает именно его (и меню Explorer ссылается на него), старый exe не подхватит изменения.
 
 ## Конфиг и данные
 
 - `%APPDATA%\soverter\presets.toml` — пресеты и `[settings]`: `menu_mode`, `integration` (`classic` по умолчанию | `modern` = меню Windows 11, бета, нужен UAC), `auto_close`, `ffmpeg_path`, `language` (`en`|`ru`, пусто = en), `theme` (`system`|`dark`|`light`, пусто = system; применяется сразу, `gui.SetThemeMode`), `ui_scale` (проценты, пусто = 100), `menu_title` (пусто = по умолчанию, см. ниже).
-- `%APPDATA%\soverter\menu.txt` — для DLL меню Windows 11 (`exe=`, `mode=`, `title=`, строки `id<TAB>name`), пересоздаётся при каждой установке меню.
+- `%APPDATA%\soverter\menu.txt` — для DLL меню Windows 11 (`exe=`, `mode=`, `title=`, `info=` — подпись пункта свойств видео, строки `id<TAB>name`), пересоздаётся при каждой установке меню.
 - `%LOCALAPPDATA%\soverter\encoders.json` — кэш проверки энкодеров (7 дней). `%USERPROFILE%\.soverter\shellext` — файлы пакета меню.
 - Стартовые пресеты (`preset.Defaults()`) создаются только при отсутствии файла; существующий конфиг владельца не обновляется. Суффиксы по умолчанию: `stretch-fhd`, `stretch-qhd`, `volume-6db`, `30fps`, `720p`, `h265`.
 
@@ -32,14 +32,14 @@ go run ./cmd/guidemo -shot <папка>                                    # р�
 - `mediainfo` — свойства файла из ffprobe (`Parse` чистый, `Probe` запускает ffprobe): окно «Свойства видео» (`gui/info.go`, подкоманда `info <файл>...`), последний пункт подменю обоих меню (`info=` в `menu.txt`, `shellint.InfoKey`) или кнопка в окне выбора. `sizecalc` — битрейт по целевому размеру из ffprobe. `runner` — запуск ffmpeg, два прохода, прогресс, очередь. `ffimport` — парсер «Импорт из команды».
 - `i18n` — `T`/`Err`/`N`, каталог `en.go`, `SystemLang()` (язык отображения Windows).
 - `gui` — Gio (immediate mode, без WebView и cgo):
-  - `theme/` — токены цветов (`DarkPalette`/`LightPalette`, тема по настройке Windows), шрифты: Roboto вшит (`eliasnaur.com/font`), Consolas (или Go Mono) для кода, Segoe Fluent Icons/MDL2 для иконок.
+  - `theme/` — токены цветов (`DarkPalette`/`LightPalette`, `Palette.Dark`; тема по настройке `theme`, по умолчанию как в Windows), шрифты: Roboto вшит (`eliasnaur.com/font`), Consolas (или Go Mono) для кода, Segoe Fluent Icons/MDL2 для иконок.
   - `kit.go` — сегментные переключатели `Seg`, поле `Field`, `Slider`, `Switch`, `Dialog`, `Section`, `Banner`; `widgets.go` — `Btn`, `Chip`, `Progress`.
   - `app.go` — окна (`Open`, процесс завершается при закрытии последнего), масштаб (`Scale`/`SetScale`, Ctrl+=, Ctrl+-, Ctrl+0), `Configure(settings)`.
   - `editor.go` — состояние и правила редактора (`editVideo` применяет перекрёстные правила), `editor_view.go` — отрисовка карточек, `preset_list.go` — список пресетов с drag-and-drop, `picker.go`, `progress.go`, `options.go`.
   - Форма конструктора выводится из пресета на каждом кадре; копии есть только у текстовых полей (`loadFields`/`pollFields`). Логику в отрисовку не класть.
-  - Настройки языка и масштаба применяются и пишутся в `presets.toml` сразу (`persistUI`), не трогая несохранённые правки пресетов; то же делает «Готово» в «Параметры». «Сохранить» относится только к пресетам.
-- Подпись пункта «Video properties» в меню (`preset.InfoMenuLabel`) следует языку Windows, как и корневой пункт; в самой программе окно и кнопка переводятся языком программы.
-- Заголовок окна (кнопки закрыть/свернуть/развернуть) красится под тему через DWM (`styleChrome` в `gui/sys_windows.go`, цвет = `Palette.Sidebar`, рамка = `Raised`); хэндл приходит событием `Win32ViewEvent`, на Windows 10 цвета игнорируются.
+  - Настройки языка, темы и масштаба применяются и пишутся в `presets.toml` сразу (`persistUI`), не трогая несохранённые правки пресетов; то же делает «Готово» в «Параметры». «Сохранить» относится только к пресетам.
+  - Подпись пункта «Video properties» в меню (`preset.InfoMenuLabel`) следует языку Windows, как и корневой пункт; в самой программе окно и кнопка переводятся языком программы.
+  - Заголовок окна (кнопки закрыть/свернуть/развернуть) красится под тему через DWM (`styleChrome` в `gui/sys_windows.go`, цвет = `Palette.Sidebar`, рамка = `Raised`); хэндл приходит событием `Win32ViewEvent`, на Windows 10 цвета игнорируются.
 - `shellint` — классическое меню (реестр HKCU, за интерфейсом для моков). `shellext` — меню Windows 11: подписанный MSIX с C++ COM-библиотекой (`/shellext`), читает `menu.txt`; название корня по умолчанию выбирает сама по языку Windows. `ipc` — single-instance через loopback-порт 47613.
 - `e2e` — тесты на реальном ffmpeg/NVENC; пропускаются, если ffmpeg нет.
 
@@ -61,7 +61,9 @@ go run ./cmd/guidemo -shot <папка>                                    # р�
 - Headless-рендер (`guidemo`, тесты) требует `layout.Context.Source` от `input.Router`, иначе все виджеты «выключены».
 - Моноширинный шрифт сидит в строке выше середины: `monoNudge` сдвигает его вниз; поля ввода имеют фиксированную высоту и центрируются через `Stack`.
 - Проводник: `explorer /select,"путь"` собирать через `SysProcAttr.CmdLine`, иначе Go ставит кавычки на весь аргумент и откроется папка по умолчанию.
-- Для проверки UI в живом окне: запустить exe с временным `APPDATA`, управлять мышью через `mouse_event` (для drag нужны промежуточные относительные движения), снимать экран и смотреть.
+- Для проверки UI в живом окне: запустить exe с временным `APPDATA`, управлять мышью через `mouse_event` (для drag нужны промежуточные относительные движения), снимать экран и смотреть. Синтетические клики по кнопкам внутри диалогов (`Dialog`) не срабатывают, для них закрывать диалог клавишей Esc и проверять логику тестами.
+- `Clicked(gtx)` срабатывает, даже если кнопку рисуют через `gtx.Disabled()`: состояние («есть правки», «выбран пресет») проверять явно, а `Clicked` вызывать всегда, чтобы не копились события.
+- Под открытым диалогом нижний слой «выключен» и не получает уход курсора: наведение зависает, поэтому `closeDlg` вызывает `resetHover`. Тело диалога прокручивается (`Dialog.scrollBody`).
 
 ## Локализация
 
@@ -71,8 +73,10 @@ go run ./cmd/guidemo -shot <папка>                                    # р�
 
 ## Git
 
-Репозиторий локальный (до первой публикации на GitHub), единственная ветка `main`; историю не переписывать. Коммит на логический этап, сообщения на английском, в конце строка `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`. Бинарники не коммитятся: `soverter.exe`, `dist/`, `shellext/build/`, `internal/shellext/assets/soverter.msix` и `.cer` в `.gitignore` (собранное выкладывается в GitHub Releases; `AppxManifest.xml` и `logo.png` остаются исходниками). Рабочие файлы при `core.autocrlf` бывают с CRLF после переключения веток: многострочные `perl -0pi` тогда не срабатывают, правьте через Edit.
+Репозиторий публичный: github.com/feedblackg44/soverter (GPL-3.0), ветка `main` защищена от удаления и force-push; историю не переписывать. Пушит владелец сам (SSH-ключ с паролем), я только коммичу локально. Новая функция — в ветке `feature/...`, затем merge в `main` (`--no-ff`). Коммит на логический этап, сообщения на английском, в конце строка `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`. Бинарники не коммитятся: `soverter.exe`, `dist/`, `shellext/build/`, `internal/shellext/assets/soverter.msix` и `.cer` в `.gitignore` (собранное выкладывается в GitHub Releases; `AppxManifest.xml` и `logo.png` остаются исходниками). Рабочие файлы при `core.autocrlf` бывают с CRLF после переключения веток: многострочные `perl -0pi` тогда не срабатывают, правьте через Edit.
 
 ## Релиз и подпись
 
 Меню Windows 11 в релизах подписано самоподписанным `CN=soverter` (доверие ставит пользователь через UAC), exe не подписан. Заявку в SignPath Foundation отклонили (мало охвата), `release.yml` удалён (остался в истории git, коммит до этого). Позже можно повторить заявку или взять сертификат CA. `shellext\package.ps1 -Unsigned -Publisher '<Subject>'` собирает неподписанный пакет без `.cer` (тогда `CertTrusted()` истинна, шага доверия и UAC нет, кнопка «Удалить сертификат из доверенных» скрыта, потому что `CertThumbprint()` пуст). Лицензия GPL-3.0, раздел Code signing policy в README.
+
+Версии по semver (0.x: фичи — минор, исправления — патч; релиз 0.2.0 вышел с видео-свойствами и темой). `CHANGELOG.md` нет: описание релиза пишется из `git log <прошлый тег>..main` (блоки What's new / Changed / Fixed / Install / About the signature + SHA-256 zip; без заголовка с названием, его показывает GitHub). Релиз: `release.ps1 -Version X.Y.Z` (нужен MinGW в PATH), тег `vX.Y.Z` и публикацию делает владелец. Скриншоты README: `go run ./cmd/guidemo -shot <папка>`, перегенерировать при заметных изменениях интерфейса. Идеи и планы живут в Planka владельца, в репозитории только то, что взято в работу.

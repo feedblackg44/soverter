@@ -49,9 +49,14 @@
 </p>
 
 <p align="center">
+  <img src="docs/media/info.png" alt="Video properties window" width="560"><br>
+  <sub>Video properties: what ffprobe knows about the file, to help choose a preset.</sub>
+</p>
+
+<p align="center">
   <img src="docs/media/picker-dark.png" alt="Preset picker, dark theme" width="400">
   <img src="docs/media/picker-light.png" alt="Preset picker, light theme" width="400"><br>
-  <sub>The preset picker (single-item menu mode), dark and light themes follow Windows.</sub>
+  <sub>The preset picker (single-item menu mode), the theme follows Windows or is set in Settings.</sub>
 </p>
 
 ## Requirements
@@ -61,8 +66,8 @@
 
 ## Install
 
-Download `soverter.exe` from the Releases page and run it. In the editor, click **Windows menu → Install from saved presets**
-(or just **Save**); the menu is registered automatically. If you move `soverter.exe` later, press **Save** again (the path to the exe
+Download the zip from the Releases page, unzip it and run `soverter.exe`. In the editor click **Save** (or **Windows menu → Install from saved presets**);
+the menu is registered automatically. If you move `soverter.exe` later, press **Save** again (the path to the exe
 is stored in the menu registration).
 
 By default the classic menu is used: it needs no administrator rights (on Windows 11 it lives under "Show more options", on
@@ -174,7 +179,7 @@ The built package (`internal\shellext\assets\soverter.msix`, `.cer`) is **not in
 after changing `shellext\ctx.cpp` or the manifest. Without the package the app still builds and works; the Windows 11 menu is
 unavailable and the classic menu is used.
 
-A self-signed build asks you to trust its certificate once: on the first menu install the app adds the public part to
+A self-signed build asks you to trust its certificate once, when you choose the beta Windows 11 menu: the app adds the public part to
 `LocalMachine\TrustedPeople` (**one UAC prompt**, no developer mode). Remove it with **Windows menu → Remove certificate from trusted**
 or `soverter uninstall --cert`. Builds that embed no certificate (signed with a CA certificate) have no such step.
 
@@ -205,8 +210,9 @@ The Roboto font (Apache-2.0), Gio (MIT/Unlicense) and the other dependencies are
 ## Code signing policy
 
 The Windows 11 menu package embedded in `soverter.exe` is signed with a self-signed certificate (`CN=soverter`), and the exe
-itself is not code-signed yet. On the first menu install the app asks you to trust that certificate once (one UAC prompt);
-The package is only used if you opt in to the beta Windows 11 menu; otherwise the classic menu is used. A certificate from a public CA is planned once the project has a wider audience.
+itself is not code-signed yet. The package is only used if you opt in to the beta Windows 11 menu, and then the app asks you to trust
+that certificate once (one UAC prompt); otherwise the classic menu is used and nothing needs trusting. A certificate from a public CA
+is planned once the project has a wider audience.
 
 - **Privacy.** Soverter does not collect or transmit any data. It runs `ffmpeg` locally on the files you choose; it makes
   no network connections (a loopback port, `127.0.0.1:47613`, only keeps a single instance running).

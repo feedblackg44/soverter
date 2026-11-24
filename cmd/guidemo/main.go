@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"gioui.org/app"
 	"gioui.org/gpu/headless"
@@ -22,6 +23,7 @@ import (
 
 	"soverter/internal/gui"
 	"soverter/internal/gui/theme"
+	"soverter/internal/mediainfo"
 	"soverter/internal/preset"
 )
 
@@ -95,6 +97,14 @@ func main() {
 			shot(filepath.Join(*out, fmt.Sprintf("editor%d.png", i)), 1770, 3600, theme.DarkPalette(), ed.Layout)
 		}
 		shot(filepath.Join(*out, "progress-dark.png"), 840, 480, theme.DarkPalette(), progressScene)
+		// README screenshots: the video properties window and the editor cropped to its first screen (no status bar)
+		cropTop(filepath.Join(*out, "editor0.png"), filepath.Join(*out, "editor.png"), 1280)
+		info := mediainfo.Info{
+			Path: "C:/Videos/holiday 4k.mkv", Container: "Matroska / WebM", Size: 1_240_000_000, Duration: 372 * time.Second, BitRate: 26_660_000,
+			Video: []mediainfo.Video{{Codec: "hevc", Profile: "Main 10", Width: 3840, Height: 2160, Aspect: "16:9", FPS: 59.94, BitRate: 25_000_000, PixFmt: "yuv420p10le", BitDepth: 10, HDR: "HDR10"}},
+			Audio: []mediainfo.Audio{{Codec: "aac", Profile: "LC", Channels: 6, Layout: "5.1", SampleRate: 48000, BitRate: 384_000, Language: "eng"}},
+		}
+		shot(filepath.Join(*out, "info.png"), 1000, 800, theme.DarkPalette(), gui.DemoInfo(info).Layout)
 		return
 	}
 	go func() {
@@ -115,4 +125,30 @@ func main() {
 		}
 	}()
 	app.Main()
+}
+
+// cropTop writes the top h rows of the PNG src to dst.
+func cropTop(src, dst string, h int) {
+	f, err := os.Open(src)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	img, err := png.Decode(f)
+	if err != nil {
+		log.Fatal(err)
+	}
+	b := img.Bounds()
+	out := image.NewRGBA(image.Rect(0, 0, b.Dx(), h))
+	for y := 0; y < h; y++ {
+		for x := 0; x < b.Dx(); x++ {
+			out.Set(x, y, img.At(b.Min.X+x, b.Min.Y+y))
+		}
+	}
+	g, err := os.Create(dst)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer g.Close()
+	_ = png.Encode(g, out)
 }
