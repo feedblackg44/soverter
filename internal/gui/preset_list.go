@@ -27,9 +27,7 @@ type presetRow struct {
 // listInput handles row clicks and switches before anything is drawn, so every row of the frame sees the
 // new selection (otherwise the previously selected row would stay highlighted until the next frame).
 func (e *Editor) listInput(gtx C) {
-	for len(e.rows) < len(e.cfg.Presets) {
-		e.rows = append(e.rows, presetRow{})
-	}
+	e.ensureRows()
 	for i := range e.cfg.Presets {
 		row := &e.rows[i]
 		if row.click.Clicked(gtx) && e.sel != i && e.dragIdx < 0 {
@@ -39,6 +37,14 @@ func (e *Editor) listInput(gtx C) {
 			e.cfg.Presets[i].Disabled = !row.on.Value
 			e.recomputeDirty()
 		}
+	}
+}
+
+// ensureRows keeps one row state per preset. Needed again right before drawing: the "+" and duplicate buttons
+// add a preset in the middle of a frame, after listInput has already run.
+func (e *Editor) ensureRows() {
+	for len(e.rows) < len(e.cfg.Presets) {
+		e.rows = append(e.rows, presetRow{})
 	}
 }
 
@@ -80,6 +86,7 @@ func (e *Editor) presetList(gtx C, th *Th) D {
 	if len(e.cfg.Presets) == 0 {
 		return th.Paragraph(gtx, 13, p.TextMuted, i18n.T("Пока нет ни одного пресета. Нажмите «+», чтобы создать."))
 	}
+	e.ensureRows()
 	return e.list.List.Layout(gtx, len(e.cfg.Presets), func(gtx C, i int) D {
 		pr := &e.cfg.Presets[i]
 		row := &e.rows[i]
