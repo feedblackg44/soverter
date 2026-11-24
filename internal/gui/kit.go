@@ -402,6 +402,8 @@ type Dialog struct {
 	Body    func(gtx layout.Context, th *theme.Theme) layout.Dimensions
 	Actions []*DAction
 	Close   func() // called on Esc / scrim
+
+	scroll widget.List // the body scrolls when it does not fit the window
 }
 
 // Layout draws the scrim and the card; callers lay the underlying UI out with gtx.Disabled() first.
@@ -432,12 +434,27 @@ func (d *Dialog) Layout(gtx layout.Context, th *theme.Theme) layout.Dimensions {
 			gtx.Constraints.Min.X = gtx.Constraints.Max.X
 			return Vert(gtx, 16,
 				func(gtx layout.Context) layout.Dimensions { return th.Text(gtx, 17, font.Medium, p.Text, d.Title) },
-				func(gtx layout.Context) layout.Dimensions { return d.Body(gtx, th) },
+				func(gtx layout.Context) layout.Dimensions { return d.scrollBody(gtx, th, size.Y) },
 				func(gtx layout.Context) layout.Dimensions {
 					return layout.Flex{Spacing: layout.SpaceStart}.Layout(gtx, d.actionChildren(gtx, th)...)
 				})
 		})
 	})
+}
+
+// scrollBody lays the body out in a scrollable list capped to what is left of the window height after the
+// title, the buttons, the card padding and the margin around the card.
+func (d *Dialog) scrollBody(gtx layout.Context, th *theme.Theme, winH int) layout.Dimensions {
+	maxH := winH - gtx.Dp(190)
+	if min := gtx.Dp(120); maxH < min {
+		maxH = min
+	}
+	if gtx.Constraints.Max.Y > maxH {
+		gtx.Constraints.Max.Y = maxH
+	}
+	gtx.Constraints.Min.Y = 0
+	d.scroll.Axis = layout.Vertical
+	return d.scroll.List.Layout(gtx, 1, func(gtx layout.Context, _ int) layout.Dimensions { return d.Body(gtx, th) })
 }
 
 func (d *Dialog) actionChildren(gtx layout.Context, th *theme.Theme) []layout.FlexChild {
