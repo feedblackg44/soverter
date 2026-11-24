@@ -42,7 +42,7 @@ func Enabled(ps []Preset) []Preset {
 
 type Settings struct {
 	MenuMode    string `toml:"menu_mode"`   // "submenu" | "single"
-	Integration string `toml:"integration"` // "modern" (Windows 11 menu) | "classic" (registry verbs)
+	Integration string `toml:"integration"` // "classic" (registry verbs, default) | "modern" (Windows 11 menu, beta)
 	AutoClose   bool   `toml:"auto_close"`
 	FFmpegPath  string `toml:"ffmpeg_path,omitempty"`
 	Language    string `toml:"language,omitempty"`          // "en" (default) | "ru"
@@ -125,7 +125,7 @@ func Path() (string, error) {
 
 // Parse decodes and validates config data. Errors include line numbers for syntax errors.
 func Parse(data []byte) (*Config, error) {
-	c := &Config{Settings: Settings{MenuMode: "submenu", Integration: "modern"}}
+	c := &Config{Settings: Settings{MenuMode: "submenu", Integration: "classic"}}
 	if _, err := toml.Decode(string(data), c); err != nil {
 		if pe, ok := err.(toml.ParseError); ok {
 			return nil, fmt.Errorf(i18n.T("ошибка в строке %d: %s"), pe.Position.Line, pe.Message)
@@ -194,7 +194,7 @@ func Defaults() *Config {
 	}
 	copyAudio := &Audio{Mode: AudioCopy}
 	return &Config{
-		Settings: Settings{MenuMode: "submenu", Integration: "modern"},
+		Settings: Settings{MenuMode: "submenu", Integration: "classic"},
 		Presets: []Preset{
 			{ID: "stretch-fhd", Name: "4:3 → 16:9 (FHD)", Suffix: "stretch-fhd", Ext: "mp4", Video: v(CodecH264, 18, "medium", ScaleStretch, 1920, 1080, 0), Audio: copyAudio},
 			{ID: "stretch-qhd", Name: "4:3 → 16:9 (QHD)", Suffix: "stretch-qhd", Ext: "mp4", Video: v(CodecH264, 18, "medium", ScaleStretch, 2560, 1440, 0), Audio: copyAudio},

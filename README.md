@@ -26,7 +26,7 @@
   <tr>
     <td width="33%" valign="top">
       <b>Right where you are</b><br>
-      One item in the Explorer menu (the new Windows 11 one too) with your presets inside.
+      One item in the Explorer menu (the new Windows 11 one as an opt-in beta) with your presets inside.
       No app to open, no drag and drop into a window.
     </td>
     <td width="33%" valign="top">
@@ -65,8 +65,10 @@ Download `soverter.exe` from the Releases page and run it. In the editor, click 
 (or just **Save**); the menu is registered automatically. If you move `soverter.exe` later, press **Save** again (the path to the exe
 is stored in the menu registration).
 
-On Windows 11 the item appears in the new context menu (a signed package with an `IExplorerCommand` handler); on Windows 10, or
-if the package is unavailable, a classic registry menu is used (on Windows 11 it lives under "Show more options").
+By default the classic menu is used: it needs no administrator rights (on Windows 11 it lives under "Show more options", on
+Windows 10 it is the regular menu). The new Windows 11 menu is an opt-in **beta**: choose **Settings → Explorer integration →
+Windows 11 menu (Beta)**. It is installed as an app package signed with a self-signed certificate, so Windows asks for
+administrator rights (one UAC prompt) to trust that certificate; see [Code signing policy](#code-signing-policy).
 
 ## Usage
 
@@ -196,7 +198,7 @@ The Roboto font (Apache-2.0), Gio (MIT/Unlicense) and the other dependencies are
 
 The Windows 11 menu package embedded in `soverter.exe` is signed with a self-signed certificate (`CN=soverter`), and the exe
 itself is not code-signed yet. On the first menu install the app asks you to trust that certificate once (one UAC prompt);
-without it the classic menu is used. A certificate from a public CA is planned once the project has a wider audience.
+The package is only used if you opt in to the beta Windows 11 menu; otherwise the classic menu is used. A certificate from a public CA is planned once the project has a wider audience.
 
 - **Privacy.** Soverter does not collect or transmit any data. It runs `ffmpeg` locally on the files you choose; it makes
   no network connections (a loopback port, `127.0.0.1:47613`, only keeps a single instance running).

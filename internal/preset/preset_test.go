@@ -138,8 +138,8 @@ func TestOldConfigWithoutNewFields(t *testing.T) {
 	if err != nil || c.Presets[0].Structured() {
 		t.Fatalf("old config must load as a legacy preset: %v", err)
 	}
-	if c.Settings.Integration != "modern" {
-		t.Fatal("missing integration defaults to modern")
+	if c.Settings.Integration != "classic" {
+		t.Fatal("missing integration defaults to classic")
 	}
 }
 

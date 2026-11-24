@@ -19,7 +19,7 @@ go run ./cmd/guidemo -shot <папка>                                    # р�
 
 ## Конфиг и данные
 
-- `%APPDATA%\soverter\presets.toml` — пресеты и `[settings]`: `menu_mode`, `integration`, `auto_close`, `ffmpeg_path`, `language` (`en`|`ru`, пусто = en), `ui_scale` (проценты, пусто = 100), `menu_title` (пусто = по умолчанию, см. ниже).
+- `%APPDATA%\soverter\presets.toml` — пресеты и `[settings]`: `menu_mode`, `integration` (`classic` по умолчанию | `modern` = меню Windows 11, бета, нужен UAC), `auto_close`, `ffmpeg_path`, `language` (`en`|`ru`, пусто = en), `ui_scale` (проценты, пусто = 100), `menu_title` (пусто = по умолчанию, см. ниже).
 - `%APPDATA%\soverter\menu.txt` — для DLL меню Windows 11 (`exe=`, `mode=`, `title=`, строки `id<TAB>name`), пересоздаётся при каждой установке меню.
 - `%LOCALAPPDATA%\soverter\encoders.json` — кэш проверки энкодеров (7 дней). `%USERPROFILE%\.soverter\shellext` — файлы пакета меню.
 - Стартовые пресеты (`preset.Defaults()`) создаются только при отсутствии файла; существующий конфиг владельца не обновляется. Суффиксы по умолчанию: `stretch-fhd`, `stretch-qhd`, `volume-6db`, `30fps`, `720p`, `h265`.

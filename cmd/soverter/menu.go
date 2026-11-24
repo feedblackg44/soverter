@@ -23,8 +23,8 @@ func installMenu(c *preset.Config) error {
 	}
 	exe, _ = filepath.Abs(exe)
 	reg := shellint.WinRegistry{}
-	// A build without the Windows 11 package (plain `go build` from a clone) falls back to the classic menu.
-	if c.Settings.Integration == "classic" || !shellext.Available() {
+	// The classic menu is the default; the Windows 11 one is opt-in, and a build without its package falls back to classic.
+	if c.Settings.Integration != "modern" || !shellext.Available() {
 		if err := shellint.Install(reg, exe, c.Presets, c.Settings.MenuMode, c.Settings.MenuName()); err != nil {
 			return err
 		}

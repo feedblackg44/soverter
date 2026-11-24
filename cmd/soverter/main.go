@@ -166,10 +166,11 @@ func cmdEdit() {
 		untrust = shellext.UntrustCert
 	}
 	gui.NewEditor(p, cfg, gui.EditorHooks{
-		Install:   installMenu,
-		Uninstall: uninstallMenu,
-		Untrust:   untrust,
-		Installed: menuInstalled,
+		Install:         installMenu,
+		Uninstall:       uninstallMenu,
+		Untrust:         untrust,
+		Installed:       menuInstalled,
+		ModernAvailable: shellext.Available,
 		Test: func(pr preset.Preset, file string, c *preset.Config) {
 			s.mu.Lock()
 			s.cfg = c

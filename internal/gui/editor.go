@@ -22,11 +22,12 @@ import (
 
 // EditorHooks connects the editor to the OS-specific parts.
 type EditorHooks struct {
-	Install   func(*preset.Config) error                           // register menu entries
-	Uninstall func() error                                         // remove menu entries
-	Untrust   func() error                                         // remove the trusted signing certificate (UAC)
-	Installed func() bool                                          // is the menu registered
-	Test      func(p preset.Preset, file string, c *preset.Config) // run unsaved preset on a file
+	Install         func(*preset.Config) error                           // register menu entries
+	Uninstall       func() error                                         // remove menu entries
+	Untrust         func() error                                         // remove the trusted signing certificate (UAC)
+	Installed       func() bool                                          // is the menu registered
+	ModernAvailable func() bool                                          // does this build carry the Windows 11 menu package
+	Test            func(p preset.Preset, file string, c *preset.Config) // run unsaved preset on a file
 }
 
 var slugRe = regexp.MustCompile(`[^a-z0-9]+`)
@@ -787,8 +788,8 @@ type settingsState struct {
 func (e *Editor) settingsDialog() {
 	st := &e.setSt
 	st.integration, st.mode = e.cfg.Settings.Integration, e.cfg.Settings.MenuMode
-	if st.integration != "classic" {
-		st.integration = "modern"
+	if st.integration != "modern" {
+		st.integration = "classic"
 	}
 	if st.mode != "single" {
 		st.mode = "submenu"
@@ -818,12 +819,17 @@ func (e *Editor) settingsDialog() {
 				}),
 				Hint(th, i18n.T("Ctrl + / Ctrl − / Ctrl 0 в любом окне меняют масштаб.")),
 				Labeled(th, i18n.T("Интеграция с Explorer"), func(gtx C) D {
-					v, d := st.sInt.Layout(gtx, th, []Opt{{Val: "modern", Label: i18n.T("Меню Windows 11")}, {Val: "classic", Label: i18n.T("Классическое")}}, st.integration)
+					opts := []Opt{{Val: "classic", Label: i18n.T("Классическое меню")}}
+					if e.modernAvailable() {
+						opts = append(opts, Opt{Val: "modern", Label: i18n.T("Меню Windows 11 (Beta)")})
+					}
+					v, d := st.sInt.Layout(gtx, th, opts, st.integration)
 					if v != "" {
 						st.integration = v
 					}
 					return d
 				}),
+				Hint(th, integrationHint(st.integration, e.modernAvailable())),
 				Labeled(th, i18n.T("Название пункта в меню Explorer"), func(gtx C) D { return st.title.Layout(gtx, th, preset.DefaultMenuTitle()) }),
 				Labeled(th, i18n.T("Вид меню"), func(gtx C) D {
 					v, d := st.sMode.Layout(gtx, th, []Opt{{Val: "submenu", Label: i18n.T("Подменю")}, {Val: "single", Label: i18n.T("Один пункт с окном выбора")}}, st.mode)
@@ -860,6 +866,19 @@ func (e *Editor) settingsDialog() {
 			}},
 		},
 	}
+}
+
+func (e *Editor) modernAvailable() bool {
+	return e.hooks.ModernAvailable == nil || e.hooks.ModernAvailable()
+}
+
+// integrationHint explains the chosen menu kind. The Windows 11 menu is a package signed with a self-signed
+// certificate, so installing it needs administrator rights once (to trust that certificate).
+func integrationHint(kind string, modern bool) string {
+	if kind == "modern" && modern {
+		return i18n.T("Бета. Пункт появится сразу в новом меню Windows 11, без «Показать дополнительные параметры». Меню ставится как пакет приложения, подписанный самоподписанным сертификатом (платного сертификата у проекта пока нет). Чтобы Windows его приняла, один раз потребуются права администратора (UAC): сертификат добавляется в доверенные. Убрать его можно в окне «Меню Windows».")
+	}
+	return i18n.T("Работает без прав администратора. В Windows 11 пункт находится в «Показать дополнительные параметры», в Windows 10 в обычном меню.")
 }
 
 type menuState struct{ bInst, bUninst, bCert Btn }
@@ -969,8 +988,8 @@ func (e *Editor) setScale(p int) {
 func (e *Editor) applySettings(st *settingsState) {
 	cur := e.cfg.Settings
 	curInt, curMode := cur.Integration, cur.MenuMode
-	if curInt != "classic" {
-		curInt = "modern"
+	if curInt != "modern" {
+		curInt = "classic"
 	}
 	if curMode != "single" {
 		curMode = "submenu"
