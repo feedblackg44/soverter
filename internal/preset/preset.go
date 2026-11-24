@@ -269,6 +269,15 @@ func DefaultMenuTitle() string {
 	return "Convert with Soverter"
 }
 
+// InfoMenuLabel is the name of the "video properties" Explorer entry. Like DefaultMenuTitle it follows the Windows
+// display language, not the application language.
+func InfoMenuLabel() string {
+	if i18n.SystemLang() == i18n.RU {
+		return "Свойства видео"
+	}
+	return "Video properties"
+}
+
 // MenuName returns the configured menu item name or the default.
 func (s Settings) MenuName() string {
 	if t := strings.TrimSpace(s.MenuTitle); t != "" {

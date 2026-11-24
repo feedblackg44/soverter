@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"soverter/internal/encoders"
-	"soverter/internal/i18n"
 	"soverter/internal/preset"
 	"soverter/internal/shellext"
 	"soverter/internal/shellint"
@@ -26,12 +25,12 @@ func installMenu(c *preset.Config) error {
 	reg := shellint.WinRegistry{}
 	// The classic menu is the default; the Windows 11 one is opt-in, and a build without its package falls back to classic.
 	if c.Settings.Integration != "modern" || !shellext.Available() {
-		if err := shellint.Install(reg, exe, c.Presets, c.Settings.MenuMode, c.Settings.MenuName(), i18n.T("Свойства видео")); err != nil {
+		if err := shellint.Install(reg, exe, c.Presets, c.Settings.MenuMode, c.Settings.MenuName(), preset.InfoMenuLabel()); err != nil {
 			return err
 		}
 		return shellext.Uninstall()
 	}
-	if err := shellext.Install(exe, c.Presets, c.Settings.MenuMode, c.Settings.MenuTitle, i18n.T("Свойства видео")); err != nil {
+	if err := shellext.Install(exe, c.Presets, c.Settings.MenuMode, c.Settings.MenuTitle, preset.InfoMenuLabel()); err != nil {
 		return err
 	}
 	return shellint.Uninstall(reg)
