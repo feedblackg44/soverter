@@ -149,19 +149,21 @@ func (e *Editor) main(gtx C, th *Th) D {
 func (e *Editor) topBar(gtx C, th *Th) D {
 	p := th.P
 	e.bSave.Icon, e.bTest.Icon, e.bRevert.Icon, e.bImport.Icon = IcSave, IcPlay, IcUndo, IcImport
-	if e.bSave.Clicked(gtx) {
+	// A disabled look (gtx.Disabled below) does not stop Clicked(gtx) here from firing, so the state is checked
+	// explicitly. Clicked is always called to drain the event, otherwise it would fire later once enabled.
+	hasPreset := e.cur() != nil
+	if e.bSave.Clicked(gtx) && e.dirty {
 		e.save()
 	}
-	if e.bRevert.Clicked(gtx) {
+	if e.bRevert.Clicked(gtx) && e.dirty {
 		e.revert()
 	}
-	if e.bTest.Clicked(gtx) {
+	if e.bTest.Clicked(gtx) && hasPreset {
 		e.test()
 	}
-	if e.bImport.Clicked(gtx) {
+	if e.bImport.Clicked(gtx) && hasPreset {
 		e.importDialog("")
 	}
-	hasPreset := e.cur() != nil
 	return layout.Inset{Top: 18, Bottom: 14, Left: 24, Right: 24}.Layout(gtx, func(gtx C) D {
 		return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
 			layout.Flexed(1, func(gtx C) D {

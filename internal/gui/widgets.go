@@ -58,7 +58,7 @@ func (b *Btn) Layout(gtx layout.Context, th *theme.Theme, label string, kind int
 			bg, fg = theme.Alpha(p.Raised, 0xA0), p.TextMuted
 			border = p.Border
 			if kind == Ghost {
-				bg = theme.Alpha(p.Surface, 0)
+				bg, border = theme.Alpha(p.Surface, 0), theme.Alpha(p.Surface, 0)
 			}
 		}
 		return theme.Box(gtx, bg, border, 8, layout.Inset{Top: 10, Bottom: 10, Left: 16, Right: 16}, func(gtx layout.Context) layout.Dimensions {
