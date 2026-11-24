@@ -188,6 +188,8 @@ func (w *Win) loop(v View) {
 			paint.FillShape(gtx.Ops, th.P.Bg, clip.Rect{Max: gtx.Constraints.Max}.Op())
 			v.Layout(gtx, th)
 			e.Frame(gtx.Ops)
+		default:
+			styleChrome(e, th.P) // the native window handle arrives as a platform event
 		}
 	}
 }

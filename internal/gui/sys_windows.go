@@ -1,13 +1,18 @@
 package gui
 
 import (
+	"image/color"
 	"os/exec"
 	"path/filepath"
 	"syscall"
 	wutf16 "unicode/utf16"
 	"unsafe"
 
+	"gioui.org/app"
+	"gioui.org/io/event"
 	"golang.org/x/sys/windows/registry"
+
+	"soverter/internal/gui/theme"
 )
 
 // systemLight reports whether Windows apps are set to the light theme.
@@ -79,4 +84,36 @@ func ShowInFolder(path string) {
 	cmd := exec.Command("explorer.exe")
 	cmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: `explorer.exe /select,"` + path + `"`}
 	_ = cmd.Start()
+}
+
+// DWM window attributes (Windows 11; older systems ignore the colour ones).
+const (
+	dwmUseImmersiveDarkMode = 20
+	dwmBorderColor          = 34
+	dwmCaptionColor         = 35
+	dwmTextColor            = 36
+)
+
+func colorRef(c color.NRGBA) uint32 { return uint32(c.R) | uint32(c.G)<<8 | uint32(c.B)<<16 } // 0x00BBGGRR
+
+// styleChrome tints the native title bar (with the minimise, maximise and close buttons) to match the app: the
+// caption takes the sidebar colour, a shade away from the window background so the bar reads as a frame rather
+// than melting into the content, and the border and caption text follow the palette. The window handle arrives
+// as a Win32ViewEvent right after the window is created.
+func styleChrome(ev event.Event, p theme.Palette) {
+	v, ok := ev.(app.Win32ViewEvent)
+	if !ok || !v.Valid() {
+		return
+	}
+	dark := uint32(0)
+	if !systemLight() {
+		dark = 1
+	}
+	set := func(attr, val uint32) {
+		syscall.NewLazyDLL("dwmapi.dll").NewProc("DwmSetWindowAttribute").Call(v.HWND, uintptr(attr), uintptr(unsafe.Pointer(&val)), 4)
+	}
+	set(dwmUseImmersiveDarkMode, dark) // light glyphs on a dark bar and vice versa
+	set(dwmCaptionColor, colorRef(p.Sidebar))
+	set(dwmBorderColor, colorRef(p.Raised))
+	set(dwmTextColor, colorRef(p.TextDim))
 }
